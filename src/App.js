@@ -1,18 +1,36 @@
+import { Fragment } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import CreateCourse from './pages/CreateCourse';
-import Login from './pages/Login';
+import { publicRoutes } from './routes';
+import DefaultLayout from './components/Layout/DefaultLayout';
 function App() {
     return (
         <div className="App">
             <Router>
-                <Link to="/createcourse/">Create Course</Link>
+                {/* <Link to="/createcourse/">Create Course</Link>
                 <Link to="/">Home page</Link>
-                <Link to="/login">Login</Link>
+                <Link to="/login">Login</Link> */}
                 <Routes>
-                    <Route path="/" exact element={<Home />} />
-                    <Route path="/createcourse/" element={<CreateCourse />} />
-                    <Route path="/login" element={<Login />} />
+                    {publicRoutes.map((route, index) => {
+                        const Page = route.component;
+                        let Layout = DefaultLayout;
+                        if (route.layout) {
+                            Layout = route.layout;
+                        } else if (route.layout === null) {
+                            Layout = Fragment;
+                        }
+                        return (
+                            <Route
+                                key={index}
+                                path={route.path}
+                                exact={route.exact}
+                                element={
+                                    <Layout>
+                                        <Page />
+                                    </Layout>
+                                }
+                            />
+                        );
+                    })}
                 </Routes>
             </Router>
         </div>

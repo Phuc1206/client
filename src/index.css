@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* custom tippy */
+body .tippy-box {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 2.2rem;
+    background-color: rgba(84, 84, 84, 0.92);
+}
+
+body {
+    font-family: 'ProximaNova';
+}
+@layer base {
+    @font-face {
+        font-family: 'ProximaNova';
+        font-weight: 400;
+        src: url(assets/fonts/TikTokFont-Regular.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'ProximaNova';
+        font-weight: 600;
+        src: url(assets/fonts/TikTokFont-Semibold.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'ProximaNova';
+        font-weight: 700;
+        src: url(assets/fonts/TikTokFont-Bold.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'SofiaPro';
+        font-weight: 700;
+        src: url(assets/fonts/TikTokDisplayFont-Bold.woff2) format('woff2');
+    }
+}

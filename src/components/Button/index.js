@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import propTypes from 'prop-types';
 function Button({
     to,
     href,
@@ -41,10 +42,22 @@ function Button({
 
     return (
         <Comp className={classes} {...props}>
-            {lefticon && <span className="mr-2">{lefticon}</span>}
+            {lefticon && <span className="mr-2 inline-block w-6 text-center">{lefticon}</span>}
             <span className="">{children}</span>
-            {righticon && <span className="ml-2">{righticon}</span>}
+            {righticon && <span className="ml-2 inline-block w-6 text-center">{righticon}</span>}
         </Comp>
     );
 }
+Button.propTypes = {
+    to: propTypes.string,
+    href: propTypes.string,
+    primary: propTypes.bool,
+    outline: propTypes.bool,
+    text: propTypes.bool,
+    disable: propTypes.bool,
+    children: propTypes.node.isRequired,
+    lefticon: propTypes.node,
+    righticon: propTypes.node,
+    onClick: propTypes.func,
+};
 export default Button;

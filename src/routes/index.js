@@ -1,5 +1,6 @@
+import config from '../config';
 //Layouts
-import HeaderOnly from '../components/Layout/HeaderOnly';
+import HeaderOnly from '../layouts/HeaderOnly';
 
 //Pages
 import Home from '../pages/Home';
@@ -8,10 +9,11 @@ import Login from '../pages/Me';
 import Profile from '../pages/Profile';
 import Learning from '../pages/Learn';
 const publicRoutes = [
-    { path: '/', component: Home, exact: true },
-    { path: '/admin', component: CreateCourse },
-    { path: '/login', component: Login, layout: HeaderOnly },
-    { path: '/learning', component: Learning, layout: null },
+    { path: config.routes.home, component: Home, exact: true },
+    { path: config.routes.admin, component: CreateCourse },
+    { path: config.routes.profile, component: Profile },
+    { path: config.routes.login, component: Login, layout: HeaderOnly },
+    { path: config.routes.learning, component: Learning, layout: null },
 ];
 const privateRoutes = [{ path: '/profile', component: Profile }];
 export { privateRoutes, publicRoutes };

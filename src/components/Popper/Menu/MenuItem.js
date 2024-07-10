@@ -3,6 +3,7 @@ import Button from '../../Button';
 function MenuItem({ data, onClick }) {
     let classes = 'hover:bg-slate-100 px-1 py-1 ';
     if (data.separate) classes += 'border-t-2';
+
     return (
         <div className={classes}>
             <Button lefticon={data.icon} to={data.to} onClick={onClick}>

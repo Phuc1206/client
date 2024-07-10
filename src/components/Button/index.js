@@ -9,6 +9,7 @@ function Button({
     disable = false,
     children,
     // className,
+    topicon,
     lefticon,
     righticon,
     onClick,
@@ -43,6 +44,7 @@ function Button({
     return (
         <Comp className={classes} {...props}>
             {lefticon && <span className="mr-2 inline-block w-6 text-center">{lefticon}</span>}
+            {topicon && <span className="mb-2 inline-block w-6 text-center">{topicon}</span>}
             <span className="">{children}</span>
             {righticon && <span className="ml-2 inline-block w-6 text-center">{righticon}</span>}
         </Comp>

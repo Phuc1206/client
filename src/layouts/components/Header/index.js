@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEllipsisVertical,
@@ -18,6 +18,7 @@ import Menu from '../../../components/Popper/Menu';
 import Image from '../../../components/image';
 import Search from '../Search';
 import config from '../../../config';
+import { useAuth } from '../../../hooks';
 
 const MENU_ITEMS = [
     {
@@ -50,7 +51,9 @@ const MENU_ITEMS = [
     },
 ];
 function Header() {
-    const currentUser = true;
+    const navigate = useNavigate();
+    const currentUser = useAuth();
+
     //handle logic
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
@@ -83,10 +86,14 @@ function Header() {
         {
             icon: <FontAwesomeIcon icon={faSignOut} />,
             title: 'Log out',
-            to: '/logout',
+            onClick: handleLogout,
             separate: true,
         },
     ];
+    function handleLogout() {
+        localStorage.removeItem('accessToken');
+        navigate('/login');
+    }
     return (
         <header className="bg-white shadow-md fixed w-full top-0 left-0 z-10">
             <div className="container mx-auto flex justify-between items-center py-3 px-6">
@@ -123,13 +130,17 @@ function Header() {
                             </Button>
                         </>
                     )}
-                    <Menu items={currentUser ? userMenu : MENU_ITEMS} onChange={handleMenuChange} hideOnClick={false}>
+                    <Menu
+                        items={currentUser ? userMenu : MENU_ITEMS}
+                        onChange={handleMenuChange}
+                        hideOnClick={false}
+                        onClick={handleLogout}
+                    >
                         {currentUser ? (
                             <Image
                                 className="w-8 h-8 object-cover rounded-full "
                                 alt="Nguyen van a"
                                 src="https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/136a8eb8f8798a032dcbd22a19eae294.jpeg?lk3s=a5d48078&nonce=86796&refresh_token=b60ec603cadd52289e47ce85aee8a5b7&x-expires=1720321200&x-signature=rL07gw1ibY%2BeiKFbHYHeFyootdM%3D&shp=a5d48078&shcp=81f88b70"
-                                fallback="https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/e7fbc4cd8733d7c259b7c3c13255c36c.jpeg?lk3s=a5d48078&nonce=47865&refresh_token=afc3106b7ef758b6d0cde70dd25e9c6e&x-expires=1720411200&x-signature=ze%2FeuqumSffCap9RGtWIYbkNQsU%3D&shp=a5d48078&shcp=81f88b70"
                             />
                         ) : (
                             <button className="text-lg px-1 py-2">

@@ -3,11 +3,11 @@ import Sidebar from '../components/Sidebar';
 
 function DefaultLayout({ children }) {
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col h-screen">
             <Header />
-            <div className="mt-20 h-96 flex w-full max-w-full">
+            <div className="mt-16 flex flex-grow">
                 <Sidebar />
-                <div className="w-full">{children}</div>
+                <div className="flex-grow bg-white p-4">{children}</div>
             </div>
         </div>
     );

@@ -5,7 +5,7 @@ import MenuItem from './MenuItem';
 import Header from './HeaderPopper';
 import { useState } from 'react';
 const defaultFn = () => {};
-function Menu({ children, items = [], hideOnClick = false, onChange = defaultFn }) {
+function Menu({ children, items = [], hideOnClick = false, onChange = defaultFn, onClick }) {
     const [history, setHistory] = useState([{ data: items }]);
     const current = history[history.length - 1];
     const renderItems = () => {
@@ -20,6 +20,9 @@ function Menu({ children, items = [], hideOnClick = false, onChange = defaultFn 
                             setHistory([...history, item.children]);
                         } else {
                             onChange(item);
+                        }
+                        if (item.onClick) {
+                            onClick();
                         }
                     }}
                 />

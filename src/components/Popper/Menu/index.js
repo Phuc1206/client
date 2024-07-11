@@ -3,10 +3,14 @@ import Tippy from '@tippyjs/react/headless';
 import Wrapper from '../Wrapper';
 import MenuItem from './MenuItem';
 import Header from './HeaderPopper';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 const defaultFn = () => {};
 function Menu({ children, items = [], hideOnClick = false, onChange = defaultFn, onClick }) {
     const [history, setHistory] = useState([{ data: items }]);
+    useEffect(() => {
+        // Update the history when items change
+        setHistory([{ data: items }]);
+    }, [items]);
     const current = history[history.length - 1];
     const renderItems = () => {
         return current.data.map((item, index) => {

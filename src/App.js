@@ -1,9 +1,13 @@
-import { Fragment } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Fragment, useContext, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { publicRoutes, privateRoutes } from './routes';
 import DefaultLayout from './layouts/DefaultLayout';
-import ProtectedRoute from './components/Routes/ProtectedRoute';
+import { AuthContext } from './helpers/AuthContext';
 function App() {
+    const { authState } = useContext(AuthContext);
+    useEffect(() => {
+        setTimeout(() => {}, 1000);
+    }, [authState]);
     return (
         <div className="App">
             <Router>
@@ -11,6 +15,9 @@ function App() {
                     {publicRoutes.map((route, index) => {
                         const Layout = route.layout === null ? Fragment : route.layout || DefaultLayout;
                         const Page = route.component;
+                        if (authState.status && (route.path === '/login' || route.path === '/register')) {
+                            return <Route key={index} path={route.path} element={<Navigate to="/" />} />;
+                        }
                         return (
                             <Route
                                 key={index}
@@ -26,16 +33,15 @@ function App() {
                     {privateRoutes.map((route, index) => {
                         const Layout = route.layout === null ? Fragment : route.layout || DefaultLayout;
                         const Page = route.component;
+
                         return (
                             <Route
                                 key={index}
                                 path={route.path}
                                 element={
-                                    <ProtectedRoute>
-                                        <Layout>
-                                            <Page />
-                                        </Layout>
-                                    </ProtectedRoute>
+                                    <Layout>
+                                        <Page />
+                                    </Layout>
                                 }
                             />
                         );

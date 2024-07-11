@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEllipsisVertical,
@@ -18,42 +19,13 @@ import Menu from '../../../components/Popper/Menu';
 import Image from '../../../components/image';
 import Search from '../Search';
 import config from '../../../config';
-import { useAuth } from '../../../hooks';
+import { AuthContext } from '../../../helpers/AuthContext';
 
-const MENU_ITEMS = [
-    {
-        icon: <FontAwesomeIcon icon={faEarthAsia} />,
-        title: 'Vietnamese',
-        children: {
-            title: 'Languages',
-            data: [
-                {
-                    type: 'language',
-                    code: 'en',
-                    title: 'English',
-                },
-                {
-                    type: 'language',
-                    code: 'vi',
-                    title: 'Tiếng Việt',
-                },
-            ],
-        },
-    },
-    {
-        icon: <FontAwesomeIcon icon={faQuestionCircle} />,
-        title: 'Feedback and help',
-        to: '/feedback',
-    },
-    {
-        icon: <FontAwesomeIcon icon={faMoon} />,
-        title: 'Dark mode',
-    },
-];
 function Header() {
-    const navigate = useNavigate();
-    const currentUser = useAuth();
-
+    const { authState, setAuthState } = useContext(AuthContext);
+    // useEffect(() => {
+    //     console.log(authState.status);
+    // }, [authState.status]);
     //handle logic
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
@@ -70,6 +42,36 @@ function Header() {
                 return;
         }
     };
+    const MENU_ITEMS = [
+        {
+            icon: <FontAwesomeIcon icon={faEarthAsia} />,
+            title: 'Vietnamese',
+            children: {
+                title: 'Languages',
+                data: [
+                    {
+                        type: 'language',
+                        code: 'en',
+                        title: 'English',
+                    },
+                    {
+                        type: 'language',
+                        code: 'vi',
+                        title: 'Tiếng Việt',
+                    },
+                ],
+            },
+        },
+        {
+            icon: <FontAwesomeIcon icon={faQuestionCircle} />,
+            title: 'Feedback and help',
+            to: '/feedback',
+        },
+        {
+            icon: <FontAwesomeIcon icon={faMoon} />,
+            title: 'Dark mode',
+        },
+    ];
     const userMenu = [
         {
             icon: <FontAwesomeIcon icon={faUser} />,
@@ -92,7 +94,12 @@ function Header() {
     ];
     function handleLogout() {
         localStorage.removeItem('accessToken');
-        navigate('/login');
+        setAuthState({
+            username: '',
+            id: 0,
+            is_admin: false,
+            status: false,
+        });
     }
     return (
         <header className="bg-white shadow-md fixed w-full top-0 left-0 z-10">
@@ -109,7 +116,7 @@ function Header() {
                 </div>
                 <Search />
                 <div className="flex space-x-4">
-                    {currentUser ? (
+                    {authState.status ? (
                         <>
                             <Tippyy delay={[0, 200]} content="Khóa học của tôi" placement="bottom">
                                 <button className="text-xl text-gray-600 px-2 mx-2">
@@ -131,12 +138,12 @@ function Header() {
                         </>
                     )}
                     <Menu
-                        items={currentUser ? userMenu : MENU_ITEMS}
+                        items={authState.status ? userMenu : MENU_ITEMS}
                         onChange={handleMenuChange}
                         hideOnClick={false}
                         onClick={handleLogout}
                     >
-                        {currentUser ? (
+                        {authState.status ? (
                             <Image
                                 className="w-8 h-8 object-cover rounded-full "
                                 alt="Nguyen van a"

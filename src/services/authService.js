@@ -15,3 +15,15 @@ export const login = async (data) => {
         console.error(error);
     }
 };
+export const getUser = async () => {
+    try {
+        const res = await httpRequest.get(`auth/`, {
+            headers: {
+                accessToken: localStorage.getItem('accessToken'),
+            },
+        });
+        return res;
+    } catch (error) {
+        console.error(error);
+    }
+};

@@ -2,8 +2,11 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import * as authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from '../../helpers/AuthContext';
 export default function Login() {
     let navigate = useNavigate();
+    const authContext = useContext(AuthContext);
     const formik = useFormik({
         initialValues: {
             username: '',
@@ -15,11 +18,16 @@ export default function Login() {
         }),
         onSubmit: (data) => {
             authService.login(data).then((response) => {
-                console.log(response);
                 if (response.error) {
                     alert(response.error);
                 } else {
                     localStorage.setItem('accessToken', response.accessToken);
+                    authContext.setAuthState({
+                        username: response.user.username,
+                        id: response.user._id,
+                        is_admin: response.user.is_admin,
+                        status: true,
+                    });
                     navigate('/');
                 }
             });

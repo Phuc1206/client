@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEllipsisVertical,
@@ -22,6 +22,7 @@ import config from '../../../config';
 import { AuthContext } from '../../../helpers/AuthContext';
 
 function Header() {
+    let navigate = useNavigate();
     const { authState, setAuthState } = useContext(AuthContext);
     // useEffect(() => {
     //     console.log(authState.status);
@@ -100,6 +101,7 @@ function Header() {
             is_admin: false,
             status: false,
         });
+        navigate('/login');
     }
     return (
         <header className="bg-white shadow-md fixed w-full top-0 left-0 z-10">
@@ -131,7 +133,9 @@ function Header() {
                         </>
                     ) : (
                         <>
-                            <Button text>Đăng ký</Button>
+                            <Button text to="/register">
+                                Đăng ký
+                            </Button>
                             <Button primary to="/login">
                                 Đăng nhập
                             </Button>

@@ -2,9 +2,10 @@ const routes = {
     home: '/',
     login: '/login',
     register: '/register',
-    admin: '/admin',
-    user: '/user',
     profile: '/:nickname',
     learning: '/learning',
+    admin: '/admin',
+    user: '/user',
+    userBlocked: '/userBlocked',
 };
 export default routes;

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import * as adminService from '../../services/adminService';
 import CreateTrackForm from './CreateTrackForm';
 import EditTrackForm from './EditTrackForm';
+import RemoveTrackModal from './RemoveTrackModal';
 function Course() {
     const [courses, setCourses] = useState([]);
     const [selectedCourses, setSelectedCourses] = useState([]);
@@ -19,6 +20,7 @@ function Course() {
     const [editCourseId, setEditCourseId] = useState(null);
     const [showEditTrackModal, setShowEditTrackModal] = useState(false);
     const [showCreateTrackModal, setShowCreateTrackModal] = useState(false);
+    const [showRemoveTrackModal, setShowRemoveTrackModal] = useState(false);
     const [selectedCourseTracks, setSelectedCourseTracks] = useState([]);
 
     const fetchCourses = async () => {
@@ -32,7 +34,7 @@ function Course() {
 
     useEffect(() => {
         fetchCourses();
-    }, [showCreateTrackModal]);
+    }, [showCreateTrackModal, showRemoveTrackModal, showEditTrackModal]);
 
     const handleCheckboxChange = (courseId) => {
         setSelectedCourses((prevSelectedCourses) =>
@@ -124,11 +126,18 @@ function Course() {
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <div className="p-4 flex justify-between">
-                <h1 className="text-2xl font-bold">Courses</h1>
+            <div className="p-4 flex justify-between ">
+                <h1 className="text-2xl font-bold ">Courses</h1>
+
                 <div className="flex space-x-2">
                     <button
-                        className="text-sm bg-orange-500 hover:bg-orange-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                        className="text-sm bg-red-500  hover:bg-red-700 text-white py-2 px-2 rounded focus:outline-none focus:shadow-outline"
+                        onClick={() => setShowRemoveTrackModal(true)}
+                    >
+                        Remove Track
+                    </button>
+                    <button
+                        className="text-sm bg-orange-500  hover:bg-orange-700 text-white py-2 px-2 rounded focus:outline-none focus:shadow-outline"
                         onClick={() => setShowCreateTrackModal(true)}
                     >
                         Create Track
@@ -136,14 +145,14 @@ function Course() {
                     <button
                         onClick={() => setShowCreateModal(true)}
                         type="button"
-                        className="text-sm bg-green-500 hover:bg-green-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                        className="text-sm bg-green-500 hover:bg-green-700 text-white py-2 px-2 rounded focus:outline-none focus:shadow-outline"
                     >
                         Create
                     </button>
                     <button
                         type="button"
                         onClick={confirmRemoveMultiple}
-                        className="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                        className="text-sm bg-red-500 hover:bg-red-700 text-white py-2 px-2 rounded focus:outline-none focus:shadow-outline"
                     >
                         Remove
                     </button>
@@ -349,6 +358,9 @@ function Course() {
             {showCreateTrackModal && <CreateTrackForm onClose={() => setShowCreateTrackModal(false)} />}
             {showEditTrackModal && (
                 <EditTrackForm tracks={selectedCourseTracks} onClose={() => setShowEditTrackModal(false)} />
+            )}
+            {showRemoveTrackModal && (
+                <RemoveTrackModal courses={courses} onClose={() => setShowRemoveTrackModal(false)} />
             )}
         </div>
     );

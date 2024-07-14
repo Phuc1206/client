@@ -100,4 +100,21 @@ export const createTrack = async (trackData) => {
         throw e;
     }
 };
-export const updateTrack = async (trackData) => {};
+export const updateTrack = async (trackId, trackData) => {
+    try {
+        const res = await httpRequest.put(`admin/course/track/update/${trackId}`, trackData);
+        return res;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
+export const deleteStep = async (stepId) => {
+    try {
+        const res = await httpRequest.deleted(`admin/course/track/step/delete/${stepId}`);
+        return res;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};

@@ -5,12 +5,20 @@ function EditTrackForm({ tracks, onClose }) {
     const [editedTracks, setEditedTracks] = useState(
         tracks.map((track) => ({
             _id: track._id,
+            course_id: track.course_id,
             title: track.title,
+            position: track.position,
             duration: track.duration,
             track_steps: track.track_steps.map((step) => ({
                 _id: step._id,
-                title: step.lesson.question,
-                content: step.lesson.explanation,
+                position: step.position,
+                question: step.lesson.question,
+                answer: step.lesson.answer,
+                option_a: step.lesson.option_a,
+                option_b: step.lesson.option_b,
+                option_c: step.lesson.option_c,
+                option_d: step.lesson.option_d,
+                explanation: step.lesson.explanation,
                 videoTitle: step.video.title,
                 videoUrl: step.video.url,
             })),
@@ -33,10 +41,19 @@ function EditTrackForm({ tracks, onClose }) {
                 editedTracks.map(async (editedTrack) => {
                     await adminService.updateTrack(editedTrack._id, {
                         title: editedTrack.title,
+                        position: editedTrack.position,
                         duration: editedTrack.duration,
                         track_steps: editedTrack.track_steps.map((step) => ({
-                            title: step.title,
-                            content: step.content,
+                            _id: step._id,
+                            lesson: {
+                                question: step.question,
+                                answer: step.answer,
+                                option_a: step.option_a,
+                                option_b: step.option_b,
+                                option_c: step.option_c,
+                                option_d: step.option_d,
+                                explanation: step.explanation,
+                            },
                             video: { title: step.videoTitle, url: step.videoUrl },
                         })),
                     });
@@ -78,6 +95,26 @@ function EditTrackForm({ tracks, onClose }) {
                         <div className="mb-4">
                             <label
                                 className="block text-gray-700 text-sm font-bold mb-2"
+                                htmlFor={`trackTitle-${trackIndex}`}
+                            >
+                                Position
+                            </label>
+                            <input
+                                type="text"
+                                id={`trackTitle-${trackIndex}`}
+                                name="title"
+                                value={track.position}
+                                onChange={(e) => {
+                                    const newTracks = [...editedTracks];
+                                    newTracks[trackIndex].position = e.target.value;
+                                    setEditedTracks(newTracks);
+                                }}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label
+                                className="block text-gray-700 text-sm font-bold mb-2"
                                 htmlFor={`trackDuration-${trackIndex}`}
                             >
                                 Duration
@@ -99,30 +136,115 @@ function EditTrackForm({ tracks, onClose }) {
                             <h4 className="text-lg font-bold mb-2">Steps:</h4>
                             {track.track_steps.map((step, stepIndex) => (
                                 <div key={step._id} className="mb-4">
+                                    <h5 className="text-lg font-bold mb-2">Step {stepIndex + 1}</h5>
                                     <label
-                                        className="block text-gray-700 text-sm font-bold mb-2"
-                                        htmlFor={`stepTitle-${trackIndex}-${stepIndex}`}
+                                        className="block text-gray-700 text-sm font-bold mb-2 ml-4 mr-2"
+                                        htmlFor={`stepPosition-${trackIndex}-${stepIndex}`}
                                     >
-                                        Step Title
+                                        Position
                                     </label>
                                     <input
                                         type="text"
-                                        id={`stepTitle-${trackIndex}-${stepIndex}`}
-                                        name="title"
-                                        value={step.title}
+                                        id={`stepPosition-${trackIndex}-${stepIndex}`}
+                                        name="position"
+                                        value={step.position}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2"
+                                        htmlFor={`stepQuestion-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Question
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepQuestion-${trackIndex}-${stepIndex}`}
+                                        name="question"
+                                        value={step.question}
                                         onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
                                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     />
                                     <label
                                         className="block text-gray-700 text-sm font-bold mb-2 mt-2"
-                                        htmlFor={`stepContent-${trackIndex}-${stepIndex}`}
+                                        htmlFor={`stepAnswer-${trackIndex}-${stepIndex}`}
                                     >
-                                        Step Content
+                                        Answer
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepAnswer-${trackIndex}-${stepIndex}`}
+                                        name="answer"
+                                        value={step.answer}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepOptionA-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Option A
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepOptionA-${trackIndex}-${stepIndex}`}
+                                        name="option_a"
+                                        value={step.option_a}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepOptionB-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Option B
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepOptionB-${trackIndex}-${stepIndex}`}
+                                        name="option_b"
+                                        value={step.option_b}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepOptionC-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Option C
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepOptionC-${trackIndex}-${stepIndex}`}
+                                        name="option_c"
+                                        value={step.option_c}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepOptionD-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Option D
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepOptionD-${trackIndex}-${stepIndex}`}
+                                        name="option_d"
+                                        value={step.option_d}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepExplanation-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Explanation
                                     </label>
                                     <textarea
-                                        id={`stepContent-${trackIndex}-${stepIndex}`}
-                                        name="content"
-                                        value={step.content}
+                                        id={`stepExplanation-${trackIndex}-${stepIndex}`}
+                                        name="explanation"
+                                        value={step.explanation}
                                         onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
                                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     />

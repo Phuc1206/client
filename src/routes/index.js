@@ -7,9 +7,10 @@ import Home from '../pages/Home';
 import Login from '../pages/Me/Login';
 import Register from '../pages/Me/Register';
 import Profile from '../pages/Profile';
+import Course from '../pages/Course';
 import Learning from '../pages/Learn';
 
-import Course from '../pages/Admin/Course';
+import CourseAdmin from '../pages/Admin/Course';
 import User from '../pages/Admin/User';
 import UserBlocked from '../pages/Admin/UserBlocked';
 const publicRoutes = [
@@ -18,10 +19,11 @@ const publicRoutes = [
     { path: config.routes.register, component: Register, layout: HeaderOnly },
     { path: config.routes.profile, component: Profile },
     { path: config.routes.learning, component: Learning, layout: null },
+    { path: config.routes.course, component: Course, layout: HeaderOnly },
 ];
 const privateRoutes = [
     { path: config.routes.user, component: User },
     { path: config.routes.userBlocked, component: UserBlocked },
-    { path: config.routes.admin, component: Course },
+    { path: config.routes.admin, component: CourseAdmin },
 ];
 export { privateRoutes, publicRoutes };

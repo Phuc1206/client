@@ -360,7 +360,7 @@ function Course() {
                 <EditTrackForm tracks={selectedCourseTracks} onClose={() => setShowEditTrackModal(false)} />
             )}
             {showRemoveTrackModal && (
-                <RemoveTrackModal courses={courses} onClose={() => setShowRemoveTrackModal(false)} />
+                <RemoveTrackModal initialCourses={courses} onClose={() => setShowRemoveTrackModal(false)} />
             )}
         </div>
     );

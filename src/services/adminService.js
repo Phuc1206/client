@@ -109,9 +109,18 @@ export const updateTrack = async (trackId, trackData) => {
         throw e;
     }
 };
-export const deleteStep = async (stepId) => {
+export const removeStep = async (stepId) => {
     try {
         const res = await httpRequest.deleted(`admin/course/track/step/delete/${stepId}`);
+        return res;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
+export const removeTrack = async (trackId) => {
+    try {
+        const res = await httpRequest.deleted(`admin/course/track/delete/${trackId}`);
         return res;
     } catch (e) {
         console.error(e);

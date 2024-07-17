@@ -18,8 +18,8 @@ const publicRoutes = [
     { path: config.routes.login, component: Login, layout: HeaderOnly },
     { path: config.routes.register, component: Register, layout: HeaderOnly },
     { path: config.routes.profile, component: Profile },
-    { path: config.routes.learning, component: Learning, layout: null },
-    { path: config.routes.course, component: Course, layout: HeaderOnly },
+    { path: config.routes.learning, component: Learning, layout: HeaderOnly },
+    { path: config.routes.course, component: Course },
 ];
 const privateRoutes = [
     { path: config.routes.user, component: User },

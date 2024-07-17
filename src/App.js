@@ -5,9 +5,7 @@ import DefaultLayout from './layouts/DefaultLayout';
 import { AuthContext } from './helpers/AuthContext';
 function App() {
     const { authState } = useContext(AuthContext);
-    useEffect(() => {
-        setTimeout(() => {}, 1000);
-    }, [authState]);
+    console.log(authState);
     return (
         <div className="App">
             <Router>
@@ -33,7 +31,12 @@ function App() {
                     {privateRoutes.map((route, index) => {
                         const Layout = route.layout === null ? Fragment : route.layout || DefaultLayout;
                         const Page = route.component;
-
+                        if (
+                            !authState.is_admin &&
+                            (route.path === '/admin' || route.path === '/user' || route.path === '/userBlocked')
+                        ) {
+                            return <Route key={index} path={route.path} element={<Navigate to="/" />} />;
+                        }
                         return (
                             <Route
                                 key={index}

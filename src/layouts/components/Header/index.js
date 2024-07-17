@@ -1,5 +1,7 @@
-import { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useContext, useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEllipsisVertical,
@@ -11,6 +13,8 @@ import {
     faUser,
     faGear,
     faSignOut,
+    faArrowLeft,
+    faCircleQuestion,
 } from '@fortawesome/free-solid-svg-icons';
 import Tippyy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -20,14 +24,27 @@ import Image from '../../../components/image';
 import Search from '../Search';
 import config from '../../../config';
 import { AuthContext } from '../../../helpers/AuthContext';
+import * as apiService from '../../../services/apiService';
 
 function Header() {
+    const percentage = 66;
+    const { slug } = useParams();
     let navigate = useNavigate();
+    const location = useLocation();
     const { authState, setAuthState } = useContext(AuthContext);
-    // useEffect(() => {
-    //     console.log(authState.status);
-    // }, [authState.status]);
-    //handle logic
+    const [course, setCourse] = useState([]);
+
+    const fetchCourse = async () => {
+        try {
+            const response = await apiService.showCourse(slug);
+            setCourse(response);
+        } catch (error) {
+            console.error('Error fetching course:', error);
+        }
+    };
+    useEffect(() => {
+        fetchCourse();
+    }, []);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':
@@ -77,7 +94,7 @@ function Header() {
         {
             icon: <FontAwesomeIcon icon={faUser} />,
             title: 'View profile',
-            to: '/@hoaa',
+            to: '/profile/@123',
         },
         {
             icon: <FontAwesomeIcon icon={faGear} />,
@@ -107,6 +124,11 @@ function Header() {
         <header className="bg-white shadow-md fixed w-full top-0 left-0 z-10">
             <div className="container mx-auto flex justify-between items-center py-3 px-6">
                 <div className="flex items-center space-x-4">
+                    {location.pathname.startsWith('/learning/') && (
+                        <button onClick={() => navigate(-2)} className="text-xl text-gray-600 px-2 mx-2">
+                            <FontAwesomeIcon icon={faArrowLeft} />
+                        </button>
+                    )}
                     <Link to={config.routes.home}>
                         <img
                             src="https://fullstack.edu.vn/assets/f8-icon-lV2rGpF0.png"
@@ -114,52 +136,68 @@ function Header() {
                             className="w-12 h-12 rounded-2xl"
                         />
                     </Link>
-                    <h1 className="text-lg font-bold">Học Lập Trình Để Đi Làm</h1>
-                </div>
-                <Search />
-                <div className="flex space-x-4">
-                    {authState.status ? (
-                        <>
-                            <Tippyy delay={[0, 200]} content="Khóa học của tôi" placement="bottom">
-                                <button className="text-xl text-gray-600 px-2 mx-2">
-                                    <FontAwesomeIcon icon={faList} />
-                                </button>
-                            </Tippyy>
-                            <Tippyy delay={[0, 200]} content="Thông báo" placement="bottom">
-                                <button className="text-xl text-gray-600 px-2 mx-2 ml-3">
-                                    <FontAwesomeIcon icon={faBell} />
-                                </button>
-                            </Tippyy>
-                        </>
-                    ) : (
-                        <>
-                            <Button text to="/register">
-                                Đăng ký
-                            </Button>
-                            <Button primary to="/login">
-                                Đăng nhập
-                            </Button>
-                        </>
+                    {!location.pathname.startsWith('/learning') && (
+                        <h1 className="text-lg font-bold">Học Lập Trình Để Đi Làm</h1>
                     )}
-                    <Menu
-                        items={authState.status ? userMenu : MENU_ITEMS}
-                        onChange={handleMenuChange}
-                        hideOnClick={false}
-                        onClick={handleLogout}
-                    >
-                        {authState.status ? (
-                            <Image
-                                className="w-8 h-8 object-cover rounded-full "
-                                alt="Nguyen van a"
-                                src="https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/136a8eb8f8798a032dcbd22a19eae294.jpeg?lk3s=a5d48078&nonce=86796&refresh_token=b60ec603cadd52289e47ce85aee8a5b7&x-expires=1720321200&x-signature=rL07gw1ibY%2BeiKFbHYHeFyootdM%3D&shp=a5d48078&shcp=81f88b70"
-                            />
-                        ) : (
-                            <button className="text-lg px-1 py-2">
-                                <FontAwesomeIcon icon={faEllipsisVertical} />
-                            </button>
-                        )}
-                    </Menu>
+                    {location.pathname.startsWith('/learning') && <h1 className="text-lg font-bold">{course.title}</h1>}
                 </div>
+                {!location.pathname.startsWith('/learning') && <Search />}
+                {!location.pathname.startsWith('/learning') && (
+                    <div className="flex space-x-4">
+                        {authState.status ? (
+                            <>
+                                <Tippyy delay={[0, 200]} content="Khóa học của tôi" placement="bottom">
+                                    <button className="text-xl text-gray-600 px-2 mx-2">
+                                        <FontAwesomeIcon icon={faList} />
+                                    </button>
+                                </Tippyy>
+                                <Tippyy delay={[0, 200]} content="Thông báo" placement="bottom">
+                                    <button className="text-xl text-gray-600 px-2 mx-2 ml-3">
+                                        <FontAwesomeIcon icon={faBell} />
+                                    </button>
+                                </Tippyy>
+                            </>
+                        ) : (
+                            <>
+                                <Button text to="/register">
+                                    Đăng ký
+                                </Button>
+                                <Button primary to="/login">
+                                    Đăng nhập
+                                </Button>
+                            </>
+                        )}
+                        <Menu
+                            items={authState.status ? userMenu : MENU_ITEMS}
+                            onChange={handleMenuChange}
+                            hideOnClick={false}
+                            onClick={handleLogout}
+                        >
+                            {authState.status ? (
+                                <Image
+                                    className="w-8 h-8 object-cover rounded-full "
+                                    alt="Nguyen van a"
+                                    src="https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/136a8eb8f8798a032dcbd22a19eae294.jpeg?lk3s=a5d48078&nonce=86796&refresh_token=b60ec603cadd52289e47ce85aee8a5b7&x-expires=1720321200&x-signature=rL07gw1ibY%2BeiKFbHYHeFyootdM%3D&shp=a5d48078&shcp=81f88b70"
+                                />
+                            ) : (
+                                <button className="text-lg px-1 py-2">
+                                    <FontAwesomeIcon icon={faEllipsisVertical} />
+                                </button>
+                            )}
+                        </Menu>
+                    </div>
+                )}
+                {location.pathname.startsWith('/learning') && (
+                    <div className="flex space-x-4">
+                        <div style={{ width: 40, height: 40 }}>
+                            <CircularProgressbar value={percentage} text={`${percentage}%`} />
+                        </div>
+                        <span className="items-center justify-center mt-2">1/12 Bài học</span>
+                        <Button text lefticon={<FontAwesomeIcon icon={faCircleQuestion} />}>
+                            Hướng dẫn
+                        </Button>
+                    </div>
+                )}
             </div>
         </header>
     );

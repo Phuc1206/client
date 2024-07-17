@@ -14,7 +14,7 @@ function Search() {
     const [showResult, setShowResult] = useState(true);
     const [loading, setLoading] = useState(false);
 
-    const debounced = useDebounce(searchValue, 400);
+    const debounced = useDebounce(searchValue, 500);
 
     const inputRef = useRef();
 
@@ -51,7 +51,7 @@ function Search() {
                         <PopperWrapper>
                             <h4 className="text-slate-400 text-sm font-medium px-3 py-1">Khóa học</h4>
                             {searchResults.map((result) => (
-                                <CourseItem key={result.id} data={result} />
+                                <CourseItem key={result._id} data={result} />
                             ))}
                         </PopperWrapper>
                     </div>

@@ -20,7 +20,11 @@ function Course() {
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState([]);
-
+    const checkEnrollment = (course) => {
+        if (course.students_count && course.students_count.includes(authState.id)) {
+            navigate(`/learning/${slug}`);
+        }
+    };
     useEffect(() => {
         const fetchCourse = async () => {
             try {
@@ -37,12 +41,6 @@ function Course() {
 
         fetchCourse();
     }, [slug]);
-
-    const checkEnrollment = (course) => {
-        if (course.students_count && course.students_count.includes(authState.id)) {
-            navigate(`/learning/${slug}`);
-        }
-    };
 
     const toggleExpand = (index) => {
         setExpanded(expanded.map((exp, i) => (i === index ? !exp : exp)));

@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -25,26 +25,42 @@ import Search from '../Search';
 import config from '../../../config';
 import { AuthContext } from '../../../helpers/AuthContext';
 import * as apiService from '../../../services/apiService';
+import CourseProgress from '../../../components/CourseProgress';
 
 function Header() {
-    const percentage = 66;
+    const percentage = 60;
+    const courseRef = useRef(null);
     const { slug } = useParams();
     let navigate = useNavigate();
     const location = useLocation();
     const { authState, setAuthState } = useContext(AuthContext);
     const [course, setCourse] = useState([]);
-
+    const [progress, setProgress] = useState({});
+    const [showCourses, setShowCourses] = useState(false);
     const fetchCourse = async () => {
         try {
             const response = await apiService.showCourse(slug);
+
             setCourse(response);
         } catch (error) {
             console.error('Error fetching course:', error);
         }
     };
+    const getProgressUser = async () => {
+        try {
+            const response = await apiService.getProgressUser(authState.id);
+            console.log(response);
+            setProgress(response);
+        } catch (error) {
+            console.error('Error fetching progress:', error);
+        }
+    };
     useEffect(() => {
         fetchCourse();
-    }, []);
+        if (authState.id != 0) {
+            getProgressUser();
+        }
+    }, [slug]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':
@@ -94,7 +110,7 @@ function Header() {
         {
             icon: <FontAwesomeIcon icon={faUser} />,
             title: 'View profile',
-            to: '/profile/@123',
+            to: '/profile/',
         },
         {
             icon: <FontAwesomeIcon icon={faGear} />,
@@ -120,12 +136,31 @@ function Header() {
         });
         navigate('/login');
     }
+    const handleCoursesClick = () => {
+        setShowCourses((prev) => !prev);
+    };
+    const handleClickOutside = (event) => {
+        if (courseRef.current && !courseRef.current.contains(event.target)) {
+            setShowCourses(false);
+        }
+    };
+    useEffect(() => {
+        if (showCourses) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showCourses]);
     return (
         <header className="bg-white shadow-md fixed w-full top-0 left-0 z-10">
             <div className="container mx-auto flex justify-between items-center py-3 px-6">
                 <div className="flex items-center space-x-4">
                     {location.pathname.startsWith('/learning/') && (
-                        <button onClick={() => navigate(-2)} className="text-xl text-gray-600 px-2 mx-2">
+                        <button onClick={() => navigate('/')} className="text-xl text-gray-600 px-2 mx-2">
                             <FontAwesomeIcon icon={faArrowLeft} />
                         </button>
                     )}
@@ -136,9 +171,7 @@ function Header() {
                             className="w-12 h-12 rounded-2xl"
                         />
                     </Link>
-                    {!location.pathname.startsWith('/learning') && (
-                        <h1 className="text-lg font-bold">Học Lập Trình Để Đi Làm</h1>
-                    )}
+                    {!location.pathname.startsWith('/learning') && <h1 className="text-lg font-bold">Học Lập Trình</h1>}
                     {location.pathname.startsWith('/learning') && <h1 className="text-lg font-bold">{course.title}</h1>}
                 </div>
                 {!location.pathname.startsWith('/learning') && <Search />}
@@ -147,7 +180,7 @@ function Header() {
                         {authState.status ? (
                             <>
                                 <Tippyy delay={[0, 200]} content="Khóa học của tôi" placement="bottom">
-                                    <button className="text-xl text-gray-600 px-2 mx-2">
+                                    <button className="text-xl text-gray-600 px-2 mx-2" onClick={handleCoursesClick}>
                                         <FontAwesomeIcon icon={faList} />
                                     </button>
                                 </Tippyy>
@@ -199,6 +232,17 @@ function Header() {
                     </div>
                 )}
             </div>
+            {showCourses && (
+                <div ref={courseRef} className="fixed top-16 right-2 bg-white shadow-xl w-96 rounded-md p-4">
+                    <div className="mb-4 flex justify-between items-center">
+                        <h3 className="font-bold text-lg">Khóa học của tôi</h3>
+                        <a href="#" className="text-red-500 text-sm">
+                            Xem tất cả
+                        </a>
+                    </div>
+                    <CourseProgress progress={progress} />
+                </div>
+            )}
         </header>
     );
 }

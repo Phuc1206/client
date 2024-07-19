@@ -5,6 +5,7 @@ const Image = forwardRef(
     ({ src = images.noImage, alt, className, fallback: customFallback = images.noImage, ...props }, ref) => {
         const [fallback, setFallback] = useState('');
         const handleError = () => {
+            console.error(`Image failed to load: ${src}`);
             setFallback(customFallback);
         };
         return <img ref={ref} src={fallback || src} className={className} alt={alt} {...props} onError={handleError} />;

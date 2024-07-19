@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../helpers/AuthContext';
 import * as apiService from '../../services/apiService';
-import Image from '../../components/image';
-
+import images from '../../assets/images';
 function Profile() {
+    const avatarURL = process.env.REACT_APP_BASE_URL + 'img/';
     const { authState } = useContext(AuthContext);
     const [user, setUser] = useState({});
     const [avatarFile, setAvatarFile] = useState(null);
@@ -59,22 +59,33 @@ function Profile() {
                                 <div className="mt-48 flex justify-center w-[141px] h-[141px] bg-blue-300 rounded-full">
                                     <img
                                         className={'rounded-full'}
-                                        src={`http://localhost:3001/img/${user.avatar}`}
+                                        src={user.avatar ? `${avatarURL}${user.avatar}` : `${images.noImage}`}
                                         alt="User Avatar"
                                     />
                                 </div>
                             )}
                         </div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarChange}
-                            style={{ display: 'none' }}
-                            id="upload-avatar"
-                        />
-                        <label htmlFor="upload-avatar" className="block text-center mt-14 text-blue-500 cursor-pointer">
-                            Choose Avatar
-                        </label>
+                        <div className="relative mt-14 text-center">
+                            <label htmlFor="upload-avatar" className="text-blue-500 cursor-pointer">
+                                Choose Avatar
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                                style={{
+                                    position: 'absolute',
+                                    left: 0,
+                                    top: 0,
+                                    opacity: 0,
+                                    width: '20%',
+                                    height: '20%',
+                                    cursor: 'pointer',
+                                    display: 'none',
+                                }}
+                                id="upload-avatar"
+                            />
+                        </div>
                         <button
                             className="block mx-auto mt-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
                             onClick={handleUploadAvatar}

@@ -3,8 +3,9 @@ import ReactPlayer from 'react-player/youtube';
 import { useParams } from 'react-router-dom';
 import * as apiService from '../../services/apiService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faChevronUp, faPlayCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../../helpers/AuthContext';
+
 function Learn() {
     const { slug } = useParams();
     const { authState } = useContext(AuthContext);
@@ -12,6 +13,7 @@ function Learn() {
     const [loading, setLoading] = useState(true);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [expandedTracks, setExpandedTracks] = useState({});
+    const [progress, setProgress] = useState({});
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -19,14 +21,22 @@ function Learn() {
                 const response = await apiService.showCourse(slug);
                 setCourse(response);
                 const progressResponse = await apiService.getProgress(authState.id, response._id);
-
-                if (progressResponse) {
+                if (progressResponse && progressResponse.message !== 'Progress not found') {
                     const { track, trackStep } = progressResponse;
-                    console.log(progressResponse);
-                    setCurrentVideo(trackStep.video);
+                    setCurrentVideo(trackStep[0].video);
                     setExpandedTracks({ [track._id]: true });
-                } else if (progressResponse.message === 'Progress not found') {
-                    setCurrentVideo(response.tracks[0].track_steps[0].video);
+                    setProgress(progressResponse);
+                } else {
+                    if (response.tracks.length > 0 && response.tracks[0].track_steps.length > 0) {
+                        setCurrentVideo(response.tracks[0].track_steps[0].video);
+                        setProgress({
+                            trackIndex: 0,
+                            stepIndex: 0,
+                        });
+                        setExpandedTracks({ [response.tracks[0]._id]: true });
+                    } else {
+                        console.error('Course has no tracks or track steps.');
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching course:', error);
@@ -44,26 +54,50 @@ function Learn() {
             [trackIndex]: !prev[trackIndex],
         }));
     };
-    const handleVideoChange = (track, step) => {
-        setCurrentVideo(step.video);
-        apiService.saveProgress(authState.id, course._id, track._id, step._id, 0);
+
+    const handleVideoChange = (trackIndex, stepIndex) => {
+        if (
+            trackIndex < progress.trackIndex ||
+            (trackIndex === progress.trackIndex && stepIndex <= progress.stepIndex)
+        ) {
+            setCurrentVideo(course.tracks[trackIndex].track_steps[stepIndex].video);
+            setProgress({
+                trackIndex,
+                stepIndex,
+            });
+        } else {
+            alert('Complete the previous steps to access this content.');
+        }
     };
 
-    const handleProgress = (state) => {
-        if (course && currentVideo) {
-            const currentTrack = course.tracks.find((track) =>
-                track.track_steps.some((step) => step.video.url === currentVideo.url),
-            );
-            const currentStep = currentTrack.track_steps.find((step) => step.video.url === currentVideo.url);
-            if (state.playedSeconds === currentVideo.duration) {
-                const nextStepIndex = currentTrack.track_steps.findIndex((step) => step === currentStep) + 1;
+    const handleProgress = async (state) => {
+        console.log(state);
+        if (course && currentVideo && state.playedSeconds >= currentVideo.duration - 1) {
+            const currentTrackIndex = progress.trackIndex;
+            const currentStepIndex = progress.stepIndex;
 
-                if (nextStepIndex < currentTrack.track_steps.length) {
-                    const nextStep = currentTrack.track_steps[nextStepIndex];
-                    handleVideoChange(nextStep);
-                }
+            let newTrackIndex = currentTrackIndex;
+            let newStepIndex = currentStepIndex + 1;
+
+            if (newStepIndex >= course.tracks[currentTrackIndex].track_steps.length) {
+                newTrackIndex += 1;
+                newStepIndex = 0;
             }
-            apiService.saveProgress(authState.id, course._id, currentTrack._id, currentStep._id, state.playedSeconds);
+
+            if (newTrackIndex < course.tracks.length) {
+                setProgress({
+                    trackIndex: newTrackIndex,
+                    stepIndex: newStepIndex,
+                });
+
+                await apiService.saveProgress(
+                    authState.id,
+                    course._id,
+                    course.tracks[newTrackIndex]._id,
+                    course.tracks[newTrackIndex].track_steps[newStepIndex]._id,
+                    0,
+                );
+            }
         }
     };
 
@@ -101,9 +135,9 @@ function Learn() {
                     </h1>
                 </div>
             </div>
-            <div className="w-1/4 p-4 overflow-y-auto max-h-screen ">
+            <div className="w-1/4 p-4 overflow-y-auto max-h-screen">
                 {course.tracks.map((track, trackIndex) => (
-                    <div key={track._id} className=" bg-gray-100">
+                    <div key={track._id} className="bg-gray-100">
                         <div
                             className="flex justify-between items-center cursor-pointer p-2 border-b border-gray-200"
                             onClick={() => toggleTrack(trackIndex)}
@@ -118,19 +152,37 @@ function Learn() {
                         </div>
                         {expandedTracks[trackIndex] && (
                             <ul className="list-none p-0">
-                                {track.track_steps.map((step, stepIndex) => (
-                                    <li
-                                        key={step._id}
-                                        className="flex justify-between p-2 cursor-pointer border-b border-gray-200 hover:bg-gray-200"
-                                        onClick={() => handleVideoChange(track, step)}
-                                    >
-                                        <div className="flex items-center">
-                                            <FontAwesomeIcon icon={faPlayCircle} className="mr-2 text-gray-600" />
-                                            {stepIndex + 1}. {step.video.title}
-                                        </div>
-                                        <div className="text-gray-600">{formatDuration(step.video.duration)}</div>
-                                    </li>
-                                ))}
+                                {track.track_steps.map((step, stepIndex) => {
+                                    const isCurrentVideo = currentVideo === step.video;
+                                    const isCompleted =
+                                        trackIndex < progress.trackIndex ||
+                                        (trackIndex === progress.trackIndex && stepIndex <= progress.stepIndex);
+                                    const isLocked = !isCompleted && !isCurrentVideo;
+
+                                    return (
+                                        <li
+                                            key={step._id}
+                                            className={`flex justify-between p-2 cursor-pointer border-b border-gray-200 ${
+                                                isCurrentVideo ? 'bg-blue-100' : ''
+                                            } ${isCompleted ? 'text-green-600' : ''} ${
+                                                isLocked ? 'opacity-50 pointer-events-none' : ''
+                                            }`}
+                                            onClick={() => handleVideoChange(trackIndex, stepIndex)}
+                                        >
+                                            <div className="flex items-center">
+                                                <FontAwesomeIcon icon={faPlayCircle} className="mr-2 text-gray-600" />
+                                                {stepIndex + 1}. {step.video.title}
+                                                {isCompleted && (
+                                                    <FontAwesomeIcon
+                                                        icon={faCheckCircle}
+                                                        className="ml-2 text-green-600"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="text-gray-600">{formatDuration(step.video.duration)}</div>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
                     </div>

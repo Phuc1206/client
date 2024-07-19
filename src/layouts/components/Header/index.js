@@ -20,14 +20,14 @@ import Tippyy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Button from '../../../components/Button';
 import Menu from '../../../components/Popper/Menu';
-import Image from '../../../components/image';
 import Search from '../Search';
 import config from '../../../config';
 import { AuthContext } from '../../../helpers/AuthContext';
 import * as apiService from '../../../services/apiService';
 import CourseProgress from '../../../components/CourseProgress';
-
+import images from '../../../assets/images';
 function Header() {
+    const avatarURL = process.env.REACT_APP_BASE_URL + 'img/';
     const percentage = 60;
     const courseRef = useRef(null);
     const { slug } = useParams();
@@ -37,6 +37,7 @@ function Header() {
     const [course, setCourse] = useState([]);
     const [progress, setProgress] = useState({});
     const [showCourses, setShowCourses] = useState(false);
+    const [avatar, setAvatar] = useState(null);
     const fetchCourse = async () => {
         try {
             const response = await apiService.showCourse(slug);
@@ -49,17 +50,18 @@ function Header() {
     const getProgressUser = async () => {
         try {
             const response = await apiService.getProgressUser(authState.id);
-            console.log(response);
-            setProgress(response);
+            setProgress(response.progressRecords);
+            setAvatar(response.user.avatar);
         } catch (error) {
             console.error('Error fetching progress:', error);
         }
     };
     useEffect(() => {
         fetchCourse();
-        if (authState.id != 0) {
+        if (authState.id !== 0) {
             getProgressUser();
         }
+        // eslint-disable-next-line
     }, [slug]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
@@ -207,10 +209,10 @@ function Header() {
                             onClick={handleLogout}
                         >
                             {authState.status ? (
-                                <Image
+                                <img
                                     className="w-8 h-8 object-cover rounded-full "
-                                    alt="Nguyen van a"
-                                    src="https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/136a8eb8f8798a032dcbd22a19eae294.jpeg?lk3s=a5d48078&nonce=86796&refresh_token=b60ec603cadd52289e47ce85aee8a5b7&x-expires=1720321200&x-signature=rL07gw1ibY%2BeiKFbHYHeFyootdM%3D&shp=a5d48078&shcp=81f88b70"
+                                    alt={`${authState.username}`}
+                                    src={avatar ? `${avatarURL}${avatar}` : `${images.noImage}`}
                                 />
                             ) : (
                                 <button className="text-lg px-1 py-2">
@@ -236,7 +238,7 @@ function Header() {
                 <div ref={courseRef} className="fixed top-16 right-2 bg-white shadow-xl w-96 rounded-md p-4">
                     <div className="mb-4 flex justify-between items-center">
                         <h3 className="font-bold text-lg">Khóa học của tôi</h3>
-                        <a href="#" className="text-red-500 text-sm">
+                        <a href="/profile" className="text-red-500 text-sm">
                             Xem tất cả
                         </a>
                     </div>

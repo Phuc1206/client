@@ -48,15 +48,6 @@ export const enrollCourse = async (courseId, userId) => {
         throw e;
     }
 };
-export const getProgressUser = async (userId) => {
-    try {
-        const res = await httpRequest.get(`api/get-progress-user/${userId}`);
-        return res;
-    } catch (e) {
-        console.error(e);
-        throw e;
-    }
-};
 export const getProgress = async (userId, courseId) => {
     try {
         const res = await httpRequest.get(`api/get-progress/${userId}/${courseId}`);

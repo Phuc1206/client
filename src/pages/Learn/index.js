@@ -13,19 +13,51 @@ function Learn() {
     const [loading, setLoading] = useState(true);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [expandedTracks, setExpandedTracks] = useState({});
-    const [progress, setProgress] = useState({});
+    const [progress, setProgress] = useState({ trackIndex: 0, stepIndex: 0 });
 
     useEffect(() => {
         const fetchCourse = async () => {
             try {
                 const response = await apiService.showCourse(slug);
                 setCourse(response);
-                const progressResponse = await apiService.getProgress(authState.id, response._id);
+
+                const progresRes = await apiService.getProgress(authState.id, response._id);
+                const progressResponse = progresRes.progressRecord;
+                console.log('Progress Response:', progressResponse);
+
                 if (progressResponse && progressResponse.message !== 'Progress not found') {
                     const { track, trackStep } = progressResponse;
-                    setCurrentVideo(trackStep[0].video);
-                    setExpandedTracks({ [track._id]: true });
-                    setProgress(progressResponse);
+
+                    const trackIds = track.map((t) => t._id);
+                    const trackStepIds = trackStep.map((ts) => ts._id);
+
+                    console.log('Track IDs:', trackIds);
+                    console.log('Track Step IDs:', trackStepIds);
+
+                    const currentTrackIndex = response.tracks.filter((t) => trackIds.includes(t._id));
+                    const CountCurrentTrackIndex = currentTrackIndex.length - 1;
+                    const currentStepIndex =
+                        currentTrackIndex !== -1
+                            ? response.tracks[CountCurrentTrackIndex].track_steps.filter((s) =>
+                                  trackStepIds.includes(s._id),
+                              )
+                            : -1;
+                    const CountCurrentStepIndex = currentStepIndex.length - 1;
+                    console.log('Current Track Index:', CountCurrentTrackIndex);
+                    console.log('Current Step Index:', CountCurrentStepIndex);
+
+                    if (CountCurrentTrackIndex !== -1 && CountCurrentStepIndex !== -1) {
+                        setCurrentVideo(
+                            response.tracks[CountCurrentTrackIndex].track_steps[CountCurrentStepIndex].video,
+                        );
+                        setExpandedTracks({ [response.tracks[CountCurrentTrackIndex]._id]: true });
+                        setProgress({
+                            trackIndex: CountCurrentTrackIndex,
+                            stepIndex: CountCurrentStepIndex,
+                        });
+                    } else {
+                        console.error('Track or step index not found.');
+                    }
                 } else {
                     if (response.tracks.length > 0 && response.tracks[0].track_steps.length > 0) {
                         setCurrentVideo(response.tracks[0].track_steps[0].video);
@@ -61,17 +93,12 @@ function Learn() {
             (trackIndex === progress.trackIndex && stepIndex <= progress.stepIndex)
         ) {
             setCurrentVideo(course.tracks[trackIndex].track_steps[stepIndex].video);
-            setProgress({
-                trackIndex,
-                stepIndex,
-            });
         } else {
             alert('Complete the previous steps to access this content.');
         }
     };
 
     const handleProgress = async (state) => {
-        console.log(state);
         if (course && currentVideo && state.playedSeconds >= currentVideo.duration - 1) {
             const currentTrackIndex = progress.trackIndex;
             const currentStepIndex = progress.stepIndex;
@@ -83,20 +110,39 @@ function Learn() {
                 newTrackIndex += 1;
                 newStepIndex = 0;
             }
+            const totalSteps = course.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
 
-            if (newTrackIndex < course.tracks.length) {
-                setProgress({
-                    trackIndex: newTrackIndex,
-                    stepIndex: newStepIndex,
-                });
+            // Calculate completed steps
+            const completedSteps =
+                course.tracks.slice(0, newTrackIndex).reduce((acc, track) => acc + track.track_steps.length, 0) +
+                newStepIndex;
 
-                await apiService.saveProgress(
-                    authState.id,
-                    course._id,
-                    course.tracks[newTrackIndex]._id,
-                    course.tracks[newTrackIndex].track_steps[newStepIndex]._id,
-                    0,
-                );
+            const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
+            if (newTrackIndex <= course.tracks.length) {
+                try {
+                    await apiService.saveProgress(
+                        authState.id,
+                        course._id,
+                        course.tracks[currentTrackIndex]._id,
+                        course.tracks[currentTrackIndex].track_steps[currentStepIndex]._id,
+                        progressPercentage,
+                    );
+
+                    // Update progress state
+                    setProgress({
+                        trackIndex: newTrackIndex,
+                        stepIndex: newStepIndex,
+                    });
+                    if (newTrackIndex === course.tracks.length) {
+                        alert('Congratulations! You have completed the course.');
+                        return;
+                    } else {
+                        // Set new current video
+                        setCurrentVideo(course.tracks[newTrackIndex].track_steps[newStepIndex].video);
+                    }
+                } catch (error) {
+                    console.error('Error saving progress:', error);
+                }
             }
         }
     };

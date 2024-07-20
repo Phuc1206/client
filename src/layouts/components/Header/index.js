@@ -28,7 +28,6 @@ import CourseProgress from '../../../components/CourseProgress';
 import images from '../../../assets/images';
 function Header() {
     const avatarURL = process.env.REACT_APP_BASE_URL + 'img/';
-    const percentage = 60;
     const courseRef = useRef(null);
     const { slug } = useParams();
     let navigate = useNavigate();
@@ -38,31 +37,31 @@ function Header() {
     const [progress, setProgress] = useState({});
     const [showCourses, setShowCourses] = useState(false);
     const [avatar, setAvatar] = useState(null);
-    const fetchCourse = async () => {
-        try {
-            const response = await apiService.showCourse(slug);
+    const [percentage, setPercentage] = useState(0);
+    const [totalSteps, setTotalSteps] = useState(0);
 
-            setCourse(response);
-        } catch (error) {
-            console.error('Error fetching course:', error);
-        }
-    };
-    const getProgressUser = async () => {
-        try {
-            const response = await apiService.getProgressUser(authState.id);
-            setProgress(response.progressRecords);
-            setAvatar(response.user.avatar);
-        } catch (error) {
-            console.error('Error fetching progress:', error);
-        }
-    };
     useEffect(() => {
+        const fetchCourse = async () => {
+            if (!slug) {
+                return;
+            }
+            try {
+                const response = await apiService.showCourse(slug);
+                const res = await apiService.getProgress(authState.id, response._id);
+                setProgress(res.progressRecord);
+                console.log(res.progressRecord);
+                setPercentage(res.progressRecord.progress);
+                setAvatar(res.user.avatar);
+                setCourse(res);
+
+                const totalSteps = response.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
+                setTotalSteps(totalSteps);
+            } catch (error) {
+                console.error('Error fetching course:', error);
+            }
+        };
         fetchCourse();
-        if (authState.id !== 0) {
-            getProgressUser();
-        }
-        // eslint-disable-next-line
-    }, [slug]);
+    }, [slug, authState.id]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':
@@ -227,7 +226,9 @@ function Header() {
                         <div style={{ width: 40, height: 40 }}>
                             <CircularProgressbar value={percentage} text={`${percentage}%`} />
                         </div>
-                        <span className="items-center justify-center mt-2">1/12 Bài học</span>
+                        <span className="items-center justify-center mt-2">
+                            {progress?.trackStep?.length || 0}/{totalSteps} Bài học
+                        </span>
                         <Button text lefticon={<FontAwesomeIcon icon={faCircleQuestion} />}>
                             Hướng dẫn
                         </Button>

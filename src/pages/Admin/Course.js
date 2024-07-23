@@ -125,7 +125,7 @@ function Course() {
     };
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <div className="relative overflow-y-auto w-full shadow-md sm:rounded-lg">
             <div className="p-4 flex justify-between ">
                 <h1 className="text-2xl font-bold ">Courses</h1>
 
@@ -219,26 +219,26 @@ function Course() {
                             <td className="px-6 py-4">{course.duration}</td>
                             <td className="px-6 py-4">{course.tracks.length}</td>
                             <td className="flex items-center px-6 py-4 whitespace-nowrap">
-                                <a
+                                <button
                                     onClick={() => handleEditTrack(course.tracks)}
                                     className="font-medium text-blue-600 hover:underline cursor-pointer mr-2"
                                 >
                                     Edit Track
-                                </a>
-                                <a
+                                </button>
+                                <button
                                     onClick={() => {
                                         handleEditCourse(course);
                                     }}
                                     className="font-medium text-blue-600 hover:underline cursor-pointer"
                                 >
                                     Edit
-                                </a>
-                                <a
+                                </button>
+                                <button
                                     onClick={() => confirmRemoveSingle(course._id)}
                                     className="font-medium text-red-600 hover:underline ms-3 cursor-pointer"
                                 >
                                     Remove
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     ))}

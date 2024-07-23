@@ -1,5 +1,6 @@
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { toast } from 'react-toastify';
 import * as authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 export default function Register() {
@@ -17,11 +18,12 @@ export default function Register() {
             fullname: Yup.string().min(5, 'Hãy đặt tên dài hơn 5 kí tự').required('Required'),
             email: Yup.string().email('Invalid email').required('Required'),
         }),
-        onSubmit: (data) => {
-            authService.register(data).then((response) => {
-                console.log(response);
+        onSubmit: async (data) => {
+            const response = await authService.register(data);
+            if (response) {
+                toast.success(`${response.message}`);
                 navigate('/login');
-            });
+            }
         },
     });
     return (

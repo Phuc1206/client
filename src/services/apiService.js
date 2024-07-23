@@ -57,6 +57,15 @@ export const getProgress = async (userId, courseId) => {
         throw e;
     }
 };
+export const getProgressUser = async (userId) => {
+    try {
+        const res = await httpRequest.get(`api/get-progress-user/${userId}`);
+        return res;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
 export const saveProgress = async (userId, courseId, trackId, trackStepId, progress) => {
     try {
         const res = await httpRequest.post(`api/save-progress`, { userId, courseId, trackId, trackStepId, progress });

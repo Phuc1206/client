@@ -26,6 +26,7 @@ import { AuthContext } from '../../../helpers/AuthContext';
 import * as apiService from '../../../services/apiService';
 import CourseProgress from '../../../components/CourseProgress';
 import images from '../../../assets/images';
+import Guide from '../../../components/Guide';
 function Header() {
     const avatarURL = process.env.REACT_APP_BASE_URL + 'img/';
     const courseRef = useRef(null);
@@ -39,23 +40,33 @@ function Header() {
     const [avatar, setAvatar] = useState(null);
     const [percentage, setPercentage] = useState(0);
     const [totalSteps, setTotalSteps] = useState(0);
-
+    const [countStep, setCountStep] = useState(0);
+    const [showGuideModal, setShowGuideModal] = useState(false);
     useEffect(() => {
         const fetchCourse = async () => {
-            if (!slug) {
-                return;
-            }
             try {
-                const response = await apiService.showCourse(slug);
-                const res = await apiService.getProgress(authState.id, response._id);
-                setProgress(res.progressRecord);
-                console.log(res.progressRecord);
-                setPercentage(res.progressRecord.progress);
-                setAvatar(res.user.avatar);
-                setCourse(res);
-
-                const totalSteps = response.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
-                setTotalSteps(totalSteps);
+                const progressResponse = await apiService.getProgressUser(authState.id);
+                console.log(progressResponse);
+                setProgress(progressResponse);
+                if (progressResponse.length > 0) {
+                    setAvatar(progressResponse[0].user.avatar);
+                }
+                if (slug) {
+                    const courseResponse = await apiService.showCourse(slug);
+                    if (courseResponse) {
+                        setCourse(courseResponse);
+                        const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
+                        if (getProgress && getProgress.progressRecord) {
+                            setPercentage(getProgress.progressRecord.progress);
+                            setCountStep(getProgress.progressRecord.trackStep.length);
+                            const totalSteps = courseResponse.tracks.reduce(
+                                (acc, track) => acc + track.track_steps.length,
+                                0,
+                            );
+                            setTotalSteps(totalSteps);
+                        }
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching course:', error);
             }
@@ -227,9 +238,13 @@ function Header() {
                             <CircularProgressbar value={percentage} text={`${percentage}%`} />
                         </div>
                         <span className="items-center justify-center mt-2">
-                            {progress?.trackStep?.length || 0}/{totalSteps} Bài học
+                            {countStep}/{totalSteps} Bài học
                         </span>
-                        <Button text lefticon={<FontAwesomeIcon icon={faCircleQuestion} />}>
+                        <Button
+                            text
+                            lefticon={<FontAwesomeIcon icon={faCircleQuestion} />}
+                            onClick={() => setShowGuideModal(true)}
+                        >
                             Hướng dẫn
                         </Button>
                     </div>
@@ -246,6 +261,7 @@ function Header() {
                     <CourseProgress progress={progress} />
                 </div>
             )}
+            <Guide show={showGuideModal} onClose={() => setShowGuideModal(false)} />
         </header>
     );
 }

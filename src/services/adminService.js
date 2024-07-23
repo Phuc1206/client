@@ -19,6 +19,15 @@ export const updateUserRole = async (userId, isAdmin) => {
         console.error(error);
     }
 };
+export const removeUserFromCourse = async (userId, courseId) => {
+    try {
+        const res = await httpRequest.deleted(`admin/user/remove/${userId}/${courseId}`);
+        return res;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
 export const blockUser = async (userId) => {
     try {
         const res = await httpRequest.deleted(`admin/user/block/${userId}`);

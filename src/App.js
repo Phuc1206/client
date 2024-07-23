@@ -1,11 +1,10 @@
-import { Fragment, useContext, useEffect } from 'react';
+import { Fragment, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { publicRoutes, privateRoutes } from './routes';
 import DefaultLayout from './layouts/DefaultLayout';
 import { AuthContext } from './helpers/AuthContext';
 function App() {
     const { authState } = useContext(AuthContext);
-    console.log(authState);
     return (
         <div className="App">
             <Router>

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import * as authService from '../services/authService';
-
+import Loading from '../components/Loading';
 const AuthContext = createContext('');
 
 function AuthProvider({ children }) {
@@ -37,7 +37,7 @@ function AuthProvider({ children }) {
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>; // Hoặc một thành phần loading phù hợp khác
+        return <Loading />;
     }
 
     return <AuthContext.Provider value={{ authState, setAuthState }}>{children}</AuthContext.Provider>;

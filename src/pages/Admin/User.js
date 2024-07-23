@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import * as adminService from '../../services/adminService';
+
 function User() {
     const [users, setUsers] = useState([]);
     const [updatedUsers, setUpdatedUsers] = useState({});
+    const [showRemoveCourseModal, setShowRemoveCourseModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [loading, setLoading] = useState(false);
+
     const fetchUsers = async () => {
         try {
             const response = await adminService.getAllUser();
@@ -58,6 +63,33 @@ function User() {
             console.error('Error blocking user:', error);
         }
     };
+
+    const handleRemoveCourse = async (userId, courseId) => {
+        setLoading(true);
+        try {
+            await adminService.removeUserFromCourse(userId, courseId);
+            setSelectedUser((prev) => ({
+                ...prev,
+                course_id: prev.course_id.filter((course) => course._id !== courseId),
+            }));
+            fetchUsers();
+        } catch (error) {
+            console.error('Error removing user from course:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openRemoveCourseModal = (user) => {
+        setSelectedUser(user);
+        setShowRemoveCourseModal(true);
+    };
+
+    const closeRemoveCourseModal = () => {
+        setShowRemoveCourseModal(false);
+        setSelectedUser(null);
+    };
+
     return (
         <div className="text-gray-900 bg-gray-200">
             <div className="p-4 flex flex-col">
@@ -99,12 +131,12 @@ function User() {
                                     </select>
                                 </td>
                                 <td className="p-3 px-5">
-                                    <input
-                                        type="text"
-                                        value={user.course_id.length}
-                                        className="bg-transparent"
-                                        readOnly
-                                    />
+                                    <button
+                                        onClick={() => openRemoveCourseModal(user)}
+                                        className="text-blue-500 hover:underline"
+                                    >
+                                        {user.course_id.length}
+                                    </button>
                                 </td>
                                 <td className="p-3 px-5 flex justify-end">
                                     <button
@@ -127,7 +159,35 @@ function User() {
                     </tbody>
                 </table>
             </div>
+
+            {showRemoveCourseModal && selectedUser && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow">
+                        <h2 className="text-lg font-bold mb-4">Courses for {selectedUser.fullname}</h2>
+                        {selectedUser.course_id.map((course) => (
+                            <div key={course._id} className="flex items-center justify-between mb-2">
+                                <span>{course.title}</span>
+                                <button
+                                    onClick={() => handleRemoveCourse(selectedUser._id, course._id)}
+                                    className="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                >
+                                    {loading ? 'Removing...' : 'Remove'}
+                                </button>
+                            </div>
+                        ))}
+                        <div className="flex justify-end space-x-2 mt-4">
+                            <button
+                                onClick={closeRemoveCourseModal}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
 export default User;

@@ -1,9 +1,11 @@
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { toast } from 'react-toastify';
 import * as authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../../helpers/AuthContext';
+
 export default function Login() {
     let navigate = useNavigate();
     const authContext = useContext(AuthContext);
@@ -16,21 +18,19 @@ export default function Login() {
             username: Yup.string().min(6, 'Ngắn quá!').max(15, 'Dài quá!').required('Required'),
             password: Yup.string().min(6, 'Password cần phải trên 6 kí tự').max(20).required('Required'),
         }),
-        onSubmit: (data) => {
-            authService.login(data).then((response) => {
-                if (response.error) {
-                    alert(response.error);
-                } else {
-                    localStorage.setItem('accessToken', response.accessToken);
-                    authContext.setAuthState({
-                        username: response.user.username,
-                        id: response.user._id,
-                        is_admin: response.user.is_admin,
-                        status: true,
-                    });
-                    navigate('/');
-                }
-            });
+        onSubmit: async (data) => {
+            const response = await authService.login(data);
+            if (response) {
+                localStorage.setItem('accessToken', response.accessToken);
+                authContext.setAuthState({
+                    username: response.user.username,
+                    id: response.user._id,
+                    is_admin: response.user.is_admin,
+                    status: true,
+                });
+                navigate('/');
+                toast.success(`${response.message}`);
+            }
         },
     });
     return (

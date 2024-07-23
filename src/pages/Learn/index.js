@@ -5,7 +5,7 @@ import * as apiService from '../../services/apiService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp, faPlayCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../../helpers/AuthContext';
-
+import Loading from '../../components/Loading';
 function Learn() {
     const { slug } = useParams();
     const { authState } = useContext(AuthContext);
@@ -23,7 +23,6 @@ function Learn() {
 
                 const progresRes = await apiService.getProgress(authState.id, response._id);
                 const progressResponse = progresRes.progressRecord;
-                console.log('Progress Response:', progressResponse);
 
                 if (progressResponse && progressResponse.message !== 'Progress not found') {
                     const { track, trackStep } = progressResponse;
@@ -148,7 +147,7 @@ function Learn() {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     if (!course) {

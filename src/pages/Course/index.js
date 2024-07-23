@@ -12,6 +12,7 @@ import {
     faClock,
     faBatteryFull,
 } from '@fortawesome/free-solid-svg-icons';
+import Loading from '../../components/Loading';
 
 function Course() {
     const { slug } = useParams();
@@ -40,6 +41,7 @@ function Course() {
         };
 
         fetchCourse();
+        // eslint-disable-next-line
     }, [slug]);
 
     const toggleExpand = (index) => {
@@ -56,7 +58,7 @@ function Course() {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     if (!course) {

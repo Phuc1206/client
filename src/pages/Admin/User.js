@@ -54,7 +54,7 @@ function User() {
         try {
             const response = await adminService.blockUser(userId);
 
-            if (response.modifiedCount === 1) {
+            if (response.user.modifiedCount === 1) {
                 fetchUsers();
             } else {
                 console.log('No user was blocked or modified.');

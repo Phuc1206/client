@@ -45,25 +45,27 @@ function Header() {
     useEffect(() => {
         const fetchCourse = async () => {
             try {
-                const progressResponse = await apiService.getProgressUser(authState.id);
-                console.log(progressResponse);
-                setProgress(progressResponse);
-                if (progressResponse.length > 0) {
-                    setAvatar(progressResponse[0].user.avatar);
-                }
-                if (slug) {
-                    const courseResponse = await apiService.showCourse(slug);
-                    if (courseResponse) {
-                        setCourse(courseResponse);
-                        const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
-                        if (getProgress && getProgress.progressRecord) {
-                            setPercentage(getProgress.progressRecord.progress);
-                            setCountStep(getProgress.progressRecord.trackStep.length);
-                            const totalSteps = courseResponse.tracks.reduce(
-                                (acc, track) => acc + track.track_steps.length,
-                                0,
-                            );
-                            setTotalSteps(totalSteps);
+                if (authState.status) {
+                    const progressResponse = await apiService.getProgressUser(authState.id);
+                    console.log(progressResponse);
+                    setProgress(progressResponse);
+                    if (progressResponse.length > 0) {
+                        setAvatar(progressResponse[0].user.avatar);
+                    }
+                    if (slug) {
+                        const courseResponse = await apiService.showCourse(slug);
+                        if (courseResponse) {
+                            setCourse(courseResponse);
+                            const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
+                            if (getProgress && getProgress.progressRecord) {
+                                setPercentage(getProgress.progressRecord.progress);
+                                setCountStep(getProgress.progressRecord.trackStep.length);
+                                const totalSteps = courseResponse.tracks.reduce(
+                                    (acc, track) => acc + track.track_steps.length,
+                                    0,
+                                );
+                                setTotalSteps(totalSteps);
+                            }
                         }
                     }
                 }
@@ -72,7 +74,7 @@ function Header() {
             }
         };
         fetchCourse();
-    }, [slug, authState.id]);
+    }, [slug, authState]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':

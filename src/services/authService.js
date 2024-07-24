@@ -18,6 +18,7 @@ export const register = async (data) => {
 export const login = async (data) => {
     try {
         const res = await httpRequest.post(`auth/login/`, data);
+        toast.success(`${res.message}`);
         return res;
     } catch (error) {
         if (error.response) {

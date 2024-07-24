@@ -1,6 +1,5 @@
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'react-toastify';
 import * as authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
@@ -29,7 +28,6 @@ export default function Login() {
                     status: true,
                 });
                 navigate('/');
-                toast.success(`${response.message}`);
             }
         },
     });

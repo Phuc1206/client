@@ -23,7 +23,7 @@ function UserBlocked() {
         try {
             const response = await adminService.unBlockUser(userId);
 
-            if (response.modifiedCount === 1) {
+            if (response.user.modifiedCount === 1) {
                 fetchUsersBlocked();
             } else {
                 console.log('No user was blocked or modified.');

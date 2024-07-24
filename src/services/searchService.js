@@ -1,4 +1,5 @@
 import * as httpRequest from '../utils/httpRequest';
+import { toast } from 'react-toastify';
 export const search = async (q) => {
     try {
         const res = await httpRequest.get(`api/course/search`, {
@@ -8,6 +9,6 @@ export const search = async (q) => {
         });
         return res;
     } catch (error) {
-        console.error(error);
+        toast.error(`Error: ${error.response.data.error}`);
     }
 };

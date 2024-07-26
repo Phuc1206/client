@@ -64,7 +64,7 @@ export const getProgressUser = async (userId) => {
         const res = await httpRequest.get(`api/get-progress-user/${userId}`);
         return res;
     } catch (error) {
-        toast.error(`Error: ${error.response.data.error}`);
+        // toast.error(`Error: ${error.response.data.error}`);
         throw error;
     }
 };

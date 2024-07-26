@@ -9,7 +9,6 @@ function Home() {
     const fetchCourses = async () => {
         try {
             const response = await apiService.getHome();
-            console.log(response);
             setCourses(response);
         } catch (error) {
             console.error('Error fetching users:', error);

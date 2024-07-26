@@ -1,11 +1,13 @@
 import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import Image from '../image';
 
 const timeAgo = (timestamp) => {
-    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    return formatDistanceToNow(new Date(timestamp), { addSuffix: true, locale: vi });
 };
 
 const CourseProgress = ({ progress }) => {
+    if (!progress.length) return <p className="text-sm text-gray-500">Bạn chưa đăng kí khóa học nào</p>;
     return (
         <div>
             {progress.map((progress) => (

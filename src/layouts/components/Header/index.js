@@ -46,11 +46,14 @@ function Header() {
         const fetchCourse = async () => {
             try {
                 if (authState.status) {
+                    const userResponse = await apiService.getProfile(authState.id);
+                    setAvatar(userResponse.avatar);
+                }
+                if (authState.status) {
                     const progressResponse = await apiService.getProgressUser(authState.id);
-                    console.log(progressResponse);
-                    setProgress(progressResponse);
-                    if (progressResponse.length > 0) {
-                        setAvatar(progressResponse[0].user.avatar);
+                    if (progressResponse) {
+                        setProgress(progressResponse);
+                        console.log('saklmdkám');
                     }
                     if (slug) {
                         const courseResponse = await apiService.showCourse(slug);

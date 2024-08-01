@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { faBook, faHome, faUserSecret } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faHome, faMicrochip, faUserSecret } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../../../helpers/AuthContext';
@@ -45,6 +45,17 @@ function Sidebar() {
                                     >
                                         <FontAwesomeIcon icon={faUserSecret} className="mb-1 text-lg mt-2" />
                                         <span className="whitespace-nowrap font-semibold text-xs">Học viên</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="/training"
+                                        className={`block w-20 h-20 text-center items-center justify-center py-2 px-4 ${
+                                            currentPath === '/training' ? 'bg-gray-200' : ''
+                                        } text-gray-700 hover:bg-gray-300 rounded-xl`}
+                                    >
+                                        <FontAwesomeIcon icon={faMicrochip} className="mb-1 text-lg mt-2" />
+                                        <span className="whitespace-nowrap font-semibold text-xs">Model AI</span>
                                     </a>
                                 </li>
                             </>

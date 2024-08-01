@@ -53,7 +53,6 @@ function Header() {
                     const progressResponse = await apiService.getProgressUser(authState.id);
                     if (progressResponse) {
                         setProgress(progressResponse);
-                        console.log('saklmdkám');
                     }
                     if (slug) {
                         const courseResponse = await apiService.showCourse(slug);

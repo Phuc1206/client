@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { useParams } from 'react-router-dom';
 import * as apiService from '../../services/apiService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { formatDistanceToNow, format } from 'date-fns';
 import { faChevronDown, faChevronUp, faPlayCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../../helpers/AuthContext';
 import Loading from '../../components/Loading';
+import * as tf from '@tensorflow/tfjs';
+import * as mobilenet from '@tensorflow-models/mobilenet';
+import * as knnClassifier from '@tensorflow-models/knn-classifier';
+import { Howl } from 'howler';
+import soundURL from '../../assets/sound/alarm.mp3';
+
+// const NOT_TOUCH_LABEL = 'not_touch';
+const CLOSE_LABEL = 'close';
+const SOUND_THRESHOLD = 0.9;
+const ALERT_DELAY = 1000;
 function Learn() {
     const { slug } = useParams();
     const { authState } = useContext(AuthContext);
@@ -15,6 +24,15 @@ function Learn() {
     const [currentVideo, setCurrentVideo] = useState(null);
     const [expandedTracks, setExpandedTracks] = useState({});
     const [progress, setProgress] = useState({ trackIndex: 0, stepIndex: 0 });
+    const videoRef = useRef(null);
+    const classifierRef = useRef(null);
+    const mobilenetRef = useRef(null);
+    const canPlaySoundRef = useRef(true);
+    const notTouchStartRef = useRef(null);
+    const runLoopRef = useRef(null);
+    const sound = new Howl({
+        src: [soundURL],
+    });
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -22,17 +40,14 @@ function Learn() {
                 const response = await apiService.showCourse(slug);
                 setCourse(response);
 
-                const progresRes = await apiService.getProgress(authState.id, response._id);
-                const progressResponse = progresRes.progressRecord;
+                const progressRes = await apiService.getProgress(authState.id, response._id);
+                const progressResponse = progressRes.progressRecord;
 
                 if (progressResponse && progressResponse.message !== 'Progress not found') {
                     const { track, trackStep } = progressResponse;
 
                     const trackIds = track.map((t) => t._id);
                     const trackStepIds = trackStep.map((ts) => ts._id);
-
-                    console.log('Track IDs:', trackIds);
-                    console.log('Track Step IDs:', trackStepIds);
 
                     const currentTrackIndex = response.tracks.filter((t) => trackIds.includes(t._id));
                     const CountCurrentTrackIndex = currentTrackIndex.length - 1;
@@ -43,8 +58,6 @@ function Learn() {
                               )
                             : -1;
                     const CountCurrentStepIndex = currentStepIndex.length - 1;
-                    console.log('Current Track Index:', CountCurrentTrackIndex);
-                    console.log('Current Step Index:', CountCurrentStepIndex);
 
                     if (CountCurrentTrackIndex !== -1 && CountCurrentStepIndex !== -1) {
                         setCurrentVideo(
@@ -80,6 +93,93 @@ function Learn() {
         fetchCourse();
     }, [slug, authState.id]);
 
+    const setupCamera = async () => {
+        return new Promise((resolve, reject) => {
+            navigator.getUserMedia =
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia;
+
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia(
+                    { video: true },
+                    (stream) => {
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = stream;
+                            videoRef.current.addEventListener('loadeddata', resolve);
+                        } else {
+                            reject(new Error('Video element not found'));
+                        }
+                    },
+                    (error) => reject(error),
+                );
+            } else {
+                reject();
+            }
+        });
+    };
+
+    const loadModel = async () => {
+        try {
+            const response = await apiService.getModel();
+            const datasetObj = response;
+            const dataset = datasetObj.reduce((acc, { label, data, shape }) => {
+                acc[label] = tf.tensor(data, shape);
+                return acc;
+            }, {});
+            classifierRef.current.setClassifierDataset(dataset);
+            console.log('Model loaded successfully');
+        } catch (error) {
+            console.error('Error loading model:', error);
+        }
+    };
+
+    const run = useCallback(async () => {
+        if (!videoRef.current || videoRef.current.readyState !== 4) {
+            setTimeout(run, 1000);
+            return;
+        }
+        const embedding = mobilenetRef.current.infer(videoRef.current, true);
+        const result = await classifierRef.current.predictClass(embedding);
+        console.log(result);
+        if (result.label === CLOSE_LABEL && result.confidences[result.label] > SOUND_THRESHOLD) {
+            if (!notTouchStartRef.current) {
+                notTouchStartRef.current = Date.now();
+            } else if (Date.now() - notTouchStartRef.current >= ALERT_DELAY && canPlaySoundRef.current) {
+                sound.play();
+                canPlaySoundRef.current = false;
+            }
+        } else {
+            notTouchStartRef.current = null;
+            canPlaySoundRef.current = true;
+        }
+        runLoopRef.current = setTimeout(run, 1000);
+    }, []);
+
+    useEffect(() => {
+        const initModel = async () => {
+            try {
+                await setupCamera();
+                mobilenetRef.current = await mobilenet.load();
+                classifierRef.current = knnClassifier.create();
+                await loadModel();
+                canPlaySoundRef.current = true;
+                run();
+            } catch (error) {
+                console.error('Camera access denied or error occurred:', error);
+            }
+        };
+        initModel();
+        return () => {
+            const video = videoRef.current;
+            if (video && video.srcObject) {
+                video.srcObject.getTracks().forEach((track) => track.stop());
+            }
+            clearTimeout(runLoopRef.current);
+        };
+    }, [run]);
+
     const toggleTrack = (trackIndex) => {
         setExpandedTracks((prev) => ({
             ...prev,
@@ -97,9 +197,8 @@ function Learn() {
             alert('Complete the previous steps to access this content.');
         }
     };
-
     const handleProgress = async (state) => {
-        if (course && currentVideo && state.playedSeconds >= currentVideo.duration - 1) {
+        if (course && currentVideo && state.played >= currentVideo.duration / 2 - 1) {
             const currentTrackIndex = progress.trackIndex;
             const currentStepIndex = progress.stepIndex;
 
@@ -112,7 +211,6 @@ function Learn() {
             }
             const totalSteps = course.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
 
-            // Calculate completed steps
             const completedSteps =
                 course.tracks.slice(0, newTrackIndex).reduce((acc, track) => acc + track.track_steps.length, 0) +
                 newStepIndex;
@@ -128,7 +226,6 @@ function Learn() {
                         progressPercentage,
                     );
 
-                    // Update progress state
                     setProgress({
                         trackIndex: newTrackIndex,
                         stepIndex: newStepIndex,
@@ -137,7 +234,6 @@ function Learn() {
                         alert('Congratulations! You have completed the course.');
                         return;
                     } else {
-                        // Set new current video
                         setCurrentVideo(course.tracks[newTrackIndex].track_steps[newStepIndex].video);
                     }
                 } catch (error) {
@@ -146,7 +242,6 @@ function Learn() {
             }
         }
     };
-
     if (loading) {
         return <Loading />;
     }
@@ -179,69 +274,50 @@ function Learn() {
                     <h1 className="text-4xl font-bold">
                         {currentVideo ? currentVideo.title : 'Select a lesson to start learning'}
                     </h1>
+
+                    <video ref={videoRef} className="hidden" autoPlay />
                 </div>
             </div>
             <div className="w-1/4 p-4 overflow-y-auto max-h-screen">
+                <h2 className="p-2 font-semibold font text-xl">Nội dung khóa học</h2>
                 {course.tracks.map((track, trackIndex) => (
                     <div key={track._id} className="bg-gray-100">
                         <div
                             className="flex justify-between items-center cursor-pointer p-2 border-b border-gray-200"
                             onClick={() => toggleTrack(trackIndex)}
                         >
-                            <h3 className="text-2xl font-bold">
-                                {trackIndex + 1}. {track.title}
-                            </h3>
-                            <FontAwesomeIcon
-                                icon={expandedTracks[trackIndex] ? faChevronUp : faChevronDown}
-                                className="text-gray-600"
-                            />
+                            <h3 className="font-semibold">{track.title}</h3>
+                            <FontAwesomeIcon icon={expandedTracks[trackIndex] ? faChevronUp : faChevronDown} />
                         </div>
-                        {expandedTracks[trackIndex] && (
-                            <ul className="list-none p-0">
-                                {track.track_steps.map((step, stepIndex) => {
-                                    const isCurrentVideo = currentVideo === step.video;
-                                    const isCompleted =
-                                        trackIndex < progress.trackIndex ||
-                                        (trackIndex === progress.trackIndex && stepIndex <= progress.stepIndex);
-                                    const isLocked = !isCompleted && !isCurrentVideo;
-
-                                    return (
-                                        <li
-                                            key={step._id}
-                                            className={`flex justify-between p-2 cursor-pointer border-b border-gray-200 ${
-                                                isCurrentVideo ? 'bg-blue-100' : ''
-                                            } ${isCompleted ? 'text-green-600' : ''} ${
-                                                isLocked ? 'opacity-50 pointer-events-none' : ''
-                                            }`}
-                                            onClick={() => handleVideoChange(trackIndex, stepIndex)}
-                                        >
-                                            <div className="flex items-center">
-                                                <FontAwesomeIcon icon={faPlayCircle} className="mr-2 text-gray-600" />
-                                                {stepIndex + 1}. {step.video.title}
-                                                {isCompleted && (
-                                                    <FontAwesomeIcon
-                                                        icon={faCheckCircle}
-                                                        className="ml-2 text-green-600"
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className="text-gray-600">{formatDuration(step.video.duration)}</div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                        {expandedTracks[trackIndex] &&
+                            track.track_steps.map((step, stepIndex) => (
+                                <div
+                                    key={step._id}
+                                    className={`flex items-center cursor-pointer p-2 pl-4 ${
+                                        progress.trackIndex > trackIndex ||
+                                        (progress.trackIndex === trackIndex && progress.stepIndex >= stepIndex)
+                                            ? 'text-green-500'
+                                            : 'text-gray-500'
+                                    }`}
+                                    onClick={() => handleVideoChange(trackIndex, stepIndex)}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={
+                                            progress.trackIndex > trackIndex ||
+                                            (progress.trackIndex === trackIndex && progress.stepIndex >= stepIndex)
+                                                ? faCheckCircle
+                                                : faPlayCircle
+                                        }
+                                        className="mr-2"
+                                    />
+                                    <span>{step.title}</span>
+                                </div>
+                            ))}
                     </div>
                 ))}
             </div>
         </div>
     );
-}
-
-function formatDuration(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 }
 
 export default Learn;

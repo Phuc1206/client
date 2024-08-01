@@ -46,7 +46,7 @@ export const enrollCourse = async (courseId, userId) => {
         const res = await httpRequest.post(`api/course/enroll/${courseId}`, { userId });
         return res;
     } catch (error) {
-        toast.error(`Error: ${error.response.data.error}`);
+        // toast.error(`Error: ${error.response.data.error}`);
         throw error;
     }
 };
@@ -71,6 +71,15 @@ export const getProgressUser = async (userId) => {
 export const saveProgress = async (userId, courseId, trackId, trackStepId, progress) => {
     try {
         const res = await httpRequest.post(`api/save-progress`, { userId, courseId, trackId, trackStepId, progress });
+        return res;
+    } catch (error) {
+        toast.error(`Error: ${error.response.data.error}`);
+        throw error;
+    }
+};
+export const getModel = async () => {
+    try {
+        const res = await httpRequest.get(`api/model`);
         return res;
     } catch (error) {
         toast.error(`Error: ${error.response.data.error}`);

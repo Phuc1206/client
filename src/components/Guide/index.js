@@ -6,6 +6,7 @@ function Guide({ show, onClose }) {
     const modalRef = useRef(null);
     const { authState } = useContext(AuthContext);
     const [currentStep, setCurrentStep] = useState(0);
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
     const steps = useMemo(
         () => [
             {
@@ -47,6 +48,7 @@ function Guide({ show, onClose }) {
         const handleClickOutside = (event) => {
             if (modalRef.current && !modalRef.current.contains(event.target)) {
                 setCurrentStep(0);
+                setIsVoiceEnabled(false);
                 onClose();
             }
         };
@@ -59,12 +61,38 @@ function Guide({ show, onClose }) {
     }, [onClose]);
 
     useEffect(() => {
+        if (!isVoiceEnabled) {
+            window.speechSynthesis.cancel();
+        }
+        if (isVoiceEnabled) {
+            window.speechSynthesis.cancel();
+            readText(steps[currentStep].description);
+        }
+
         // Scroll to or highlight the element based on the current step
         const elementToHighlight = document.getElementById(steps[currentStep].highlightId);
         if (elementToHighlight) {
             elementToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    }, [currentStep, steps]);
+    }, [currentStep, steps, isVoiceEnabled]);
+
+    useEffect(() => {
+        if (!show) {
+            window.speechSynthesis.cancel();
+            setIsVoiceEnabled(false);
+        }
+    }, [show]);
+
+    const readText = (text) => {
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find((voice) => voice.name === 'Google Tiếng Việt');
+
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = selectedVoice ? selectedVoice.lang : 'vi-VN';
+        speech.voice = selectedVoice;
+
+        window.speechSynthesis.speak(speech);
+    };
 
     const handlePrevious = () => {
         setCurrentStep((prev) => Math.max(prev - 1, 0));
@@ -72,6 +100,7 @@ function Guide({ show, onClose }) {
 
     const handleNext = () => {
         if (currentStep === steps.length - 1) {
+            setCurrentStep(0);
             onClose();
         } else {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -91,21 +120,23 @@ function Guide({ show, onClose }) {
         bottom: currentStepDetails.position === 'bottom' ? '10%' : 'auto',
         transform: currentStep === 2 ? 'translateX(280px)' : 'none', // Move step 3 slightly to the right
     };
-    const backgroundClass = currentStepDetails.removeBackground
-        ? 'bg-gray-500 bg-opacity-5'
-        : 'bg-gray-500 bg-opacity-60';
+    const backgroundClass = currentStepDetails.removeBackground ? 'bg-black bg-opacity-5' : 'bg-black bg-opacity-60';
 
     return (
         <div className={`fixed inset-0 ${backgroundClass} flex justify-center items-center`}>
             <div
                 ref={modalRef}
-                className="bg-white rounded-lg p-8 max-w-md mx-auto relative"
+                className="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto relative"
                 style={modalPositionStyle}
             >
-                <h2 className="text-xl font-bold mb-4">{currentStepDetails.title}</h2>
                 <p className="mb-4">{currentStepDetails.description}</p>
                 <label className="flex items-center text-orange-400 mb-4">
-                    <input type="checkbox" className="mr-2" />
+                    <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={isVoiceEnabled}
+                        onChange={(e) => setIsVoiceEnabled(e.target.checked)}
+                    />
                     Nghe giọng Miu @_@
                 </label>
                 <div className="flex justify-between items-center mb-4">

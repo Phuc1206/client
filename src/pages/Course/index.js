@@ -50,10 +50,14 @@ function Course() {
 
     const handleEnroll = async () => {
         try {
+            if (!authState.id || authState.id === 0) {
+                navigate(`/login`);
+                return;
+            }
             await apiService.enrollCourse(course._id, authState.id);
             navigate(`/learning/${slug}`);
         } catch (error) {
-            console.error('Error enrolling in course:', error);
+            navigate(`/login`);
         }
     };
 

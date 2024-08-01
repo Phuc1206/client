@@ -1,4 +1,5 @@
 const routes = {
+    notfound: '*',
     home: '/',
     login: '/login',
     register: '/register',
@@ -8,5 +9,6 @@ const routes = {
     admin: '/admin',
     user: '/user',
     userBlocked: '/userBlocked',
+    training: '/training',
 };
 export default routes;

@@ -145,3 +145,16 @@ export const removeTrack = async (trackId) => {
         throw error;
     }
 };
+export const saveModel = async (formData) => {
+    try {
+        const res = await httpRequest.post('admin/model/save', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res;
+    } catch (error) {
+        toast.error(`Error: ${error.response.data.error}`);
+        throw error;
+    }
+};

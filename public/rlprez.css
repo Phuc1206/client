@@ -1,0 +1,136 @@
+/*!
+ * Copyright (c) Atomi Systems, Inc. All rights reserved.
+ * Version: 9.1.1
+ * Date: 2023.07.19
+ */
+#RD4l4hjR .ap-focused {
+	outline: 1px dashed black;
+	outline-offset: 1px;
+}
+#RD4l4hjR p {
+	margin: 0;
+}
+#RD4l4hjR ol,ul {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+#RD4l4hjR {
+	-webkit-tap-highlight-color: transparent;
+}
+
+.ap-input-fib-placeholder-slide-318-control-11 {
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.8);
+  box-sizing: border-box;
+  border-radius: 4px;
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  text-align: center;
+  border: none;
+  outline: none;
+  cursor: default;
+  margin: 2px 0px 2px 0px;
+  background: none;
+  padding: 0 3px 0 3px;
+  line-height: normal;
+  max-width: 1000px;
+}
+.ap-input-fib-placeholder-slide-318-control-11:focus-within{
+  box-shadow: 0 0 0 3px rgba(0,0,0);
+  box-sizing: border-box;
+}
+.ap-input-fib-slide-318-control-11 {
+  padding: 1px 1px 1px 1px;
+  background: none;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  border: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 50px;
+  max-width: 100%;
+}
+
+.ap-correct-values-dropbtn:hover {
+  background-color: #ddd;
+}
+.ap-correct-values-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.ap-correct-values-dropdown-content {
+  display: none;
+  position: absolute;
+  color: black;
+  background-color: #f1f1f1;
+  min-width: 100px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+.ap-correct-values-dropdown-content li
+{
+  color: black;
+  padding: 4px 4px;
+  cursor: auto;
+}
+.ap-correct-values-dropdown-content li:hover {
+  background-color: #ddd;
+}
+.ap-correct-values-dropdown:hover .ap-correct-values-dropdown-content {
+  min-width: 100px;
+}
+.ap-correct-values-dropdown:hover{
+  background-color: #ddd;
+}
+
+
+/* Hotspot animation */
+@keyframes pulsate {
+	0% {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	45% {
+		transform: scale(1.75);
+		opacity: 0;
+	}
+}
+
+.ap-hotspot {
+	position: absolute;
+	transition: all .3s ease;
+	cursor: pointer;
+	border-radius: 50%;
+	z-index: 1;
+}
+
+.ap-hotspot .hs-ring {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	border: 1px solid;
+	margin: -1px auto auto -1px;
+	opacity: 0;
+	pointer-events: none;
+	animation: pulsate 3s ease-out infinite;
+}
+
+.ap-hotspot:hover .hs-ring {
+	animation: none;
+}
+
+
+.ap-select::-ms-expand {
+	display: none;
+}
+
+table, th, td {
+	border-collapse: collapse;
+}

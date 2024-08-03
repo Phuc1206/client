@@ -9,6 +9,7 @@ const { Howl } = require('howler');
 
 const NOT_CLOSE_LABEL = 'not_close';
 const CLOSE_LABEL = 'close';
+const AWAY_LABEL = 'away';
 const TRAINNING_TIMES = 100;
 var sound = new Howl({
     src: [soundURL],
@@ -83,6 +84,9 @@ function Train() {
         if (result.label === CLOSE_LABEL && result.confidences[result.label] > 0.8) {
             setMessage('Touch detected');
             sound.play();
+        } else if (result.label === AWAY_LABEL && result.confidences[result.label] > 0.8) {
+            setMessage('User is away');
+            sound.play();
         } else {
             setMessage('No touch detected');
         }
@@ -138,6 +142,9 @@ function Train() {
                 </Button>
                 <Button primary className="mr-2" onClick={() => train(CLOSE_LABEL)} disabled={!isInitialized}>
                     Train 2
+                </Button>
+                <Button primary className="mr-2" onClick={() => train(AWAY_LABEL)} disabled={!isInitialized}>
+                    Train 3
                 </Button>
                 <Button primary className="mr-2" onClick={() => run()} disabled={!isInitialized}>
                     Run

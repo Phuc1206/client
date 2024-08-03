@@ -27,6 +27,7 @@ import * as apiService from '../../../services/apiService';
 import CourseProgress from '../../../components/CourseProgress';
 import images from '../../../assets/images';
 import Guide from '../../../components/Guide';
+import { useDebounce } from '../../../hooks';
 function Header() {
     const avatarURL = process.env.REACT_APP_BASE_URL + 'img/';
     const courseRef = useRef(null);
@@ -42,20 +43,22 @@ function Header() {
     const [totalSteps, setTotalSteps] = useState(0);
     const [countStep, setCountStep] = useState(0);
     const [showGuideModal, setShowGuideModal] = useState(false);
+
+    const debouncedProgress = useDebounce(progress, 5000);
     useEffect(() => {
         const fetchCourse = async () => {
             try {
                 if (authState.status) {
                     const userResponse = await apiService.getProfile(authState.id);
                     setAvatar(userResponse.avatar);
-                }
-                if (authState.status) {
                     const progressResponse = await apiService.getProgressUser(authState.id);
                     if (progressResponse) {
                         setProgress(progressResponse);
                     }
+
                     if (slug) {
                         const courseResponse = await apiService.showCourse(slug);
+
                         if (courseResponse) {
                             setCourse(courseResponse);
                             const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
@@ -75,8 +78,10 @@ function Header() {
                 console.error('Error fetching course:', error);
             }
         };
-        fetchCourse();
-    }, [slug, authState]);
+        if (debouncedProgress) {
+            fetchCourse();
+        }
+    }, [slug, authState, debouncedProgress]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':

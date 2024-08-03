@@ -11,11 +11,14 @@ import * as mobilenet from '@tensorflow-models/mobilenet';
 import * as knnClassifier from '@tensorflow-models/knn-classifier';
 import { Howl } from 'howler';
 import soundURL from '../../assets/sound/alarm.mp3';
-
+import QuizModal from '../../components/Quiz';
+import CertificateDownload from '../../components/Certificate';
+import Summary from '../../components/Practice/Lesson';
 // const NOT_TOUCH_LABEL = 'not_touch';
 const CLOSE_LABEL = 'close';
 const SOUND_THRESHOLD = 0.9;
 const ALERT_DELAY = 1000;
+const AWAY_LABEL = 'away';
 function Learn() {
     const { slug } = useParams();
     const { authState } = useContext(AuthContext);
@@ -23,12 +26,17 @@ function Learn() {
     const [loading, setLoading] = useState(true);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [expandedTracks, setExpandedTracks] = useState({});
+    const [quizModalOpen, setQuizModalOpen] = useState(false);
+    const [currentLesson, setCurrentLesson] = useState(null);
+    // const [showPractice, setShowPractice] = useState(false);
+    const [showCertificate, setShowCertificate] = useState(false);
     const [progress, setProgress] = useState({ trackIndex: 0, stepIndex: 0 });
     const videoRef = useRef(null);
     const classifierRef = useRef(null);
     const mobilenetRef = useRef(null);
     const canPlaySoundRef = useRef(true);
     const notTouchStartRef = useRef(null);
+    const awayStartRef = useRef(null);
     const runLoopRef = useRef(null);
     const sound = new Howl({
         src: [soundURL],
@@ -143,6 +151,7 @@ function Learn() {
         const embedding = mobilenetRef.current.infer(videoRef.current, true);
         const result = await classifierRef.current.predictClass(embedding);
         console.log(result);
+
         if (result.label === CLOSE_LABEL && result.confidences[result.label] > SOUND_THRESHOLD) {
             if (!notTouchStartRef.current) {
                 notTouchStartRef.current = Date.now();
@@ -150,8 +159,16 @@ function Learn() {
                 sound.play();
                 canPlaySoundRef.current = false;
             }
+        } else if (result.label === AWAY_LABEL && result.confidences[result.label] > SOUND_THRESHOLD) {
+            if (!awayStartRef.current) {
+                awayStartRef.current = Date.now();
+            } else if (Date.now() - awayStartRef.current >= ALERT_DELAY && canPlaySoundRef.current) {
+                sound.play();
+                canPlaySoundRef.current = false;
+            }
         } else {
             notTouchStartRef.current = null;
+            awayStartRef.current = null;
             canPlaySoundRef.current = true;
         }
         runLoopRef.current = setTimeout(run, 1000);
@@ -171,6 +188,7 @@ function Learn() {
             }
         };
         initModel();
+
         return () => {
             const video = videoRef.current;
             if (video && video.srcObject) {
@@ -178,7 +196,8 @@ function Learn() {
             }
             clearTimeout(runLoopRef.current);
         };
-    }, [run]);
+    }, [slug, run]);
+    const completeQuiz = () => {};
 
     const toggleTrack = (trackIndex) => {
         setExpandedTracks((prev) => ({
@@ -198,47 +217,99 @@ function Learn() {
         }
     };
     const handleProgress = async (state) => {
-        if (course && currentVideo && state.played >= currentVideo.duration / 2 - 1) {
+        console.log(state);
+        if (course && currentVideo) {
             const currentTrackIndex = progress.trackIndex;
             const currentStepIndex = progress.stepIndex;
 
-            let newTrackIndex = currentTrackIndex;
-            let newStepIndex = currentStepIndex + 1;
-
-            if (newStepIndex >= course.tracks[currentTrackIndex].track_steps.length) {
-                newTrackIndex += 1;
-                newStepIndex = 0;
+            if (currentTrackIndex === 0 && currentStepIndex === 0) {
+                await apiService.saveProgress(
+                    authState.id,
+                    course._id,
+                    course.tracks[currentTrackIndex]._id,
+                    course.tracks[currentTrackIndex].track_steps[currentStepIndex]._id,
+                    0,
+                );
             }
-            const totalSteps = course.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
+        }
+        //playedSeconds
+        if (course && currentVideo && state.playedSeconds >= currentVideo.duration / 2 - 1) {
+            const currentTrackIndex = progress.trackIndex;
+            const currentStepIndex = progress.stepIndex;
 
-            const completedSteps =
-                course.tracks.slice(0, newTrackIndex).reduce((acc, track) => acc + track.track_steps.length, 0) +
-                newStepIndex;
+            if (
+                currentTrackIndex >= 0 &&
+                currentTrackIndex < course.tracks.length &&
+                currentStepIndex >= 0 &&
+                currentStepIndex < course.tracks[currentTrackIndex].track_steps.length
+            ) {
+                const currentStep = course.tracks[currentTrackIndex].track_steps[currentStepIndex];
 
-            const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
-            if (newTrackIndex <= course.tracks.length) {
-                try {
-                    await apiService.saveProgress(
-                        authState.id,
-                        course._id,
-                        course.tracks[currentTrackIndex]._id,
-                        course.tracks[currentTrackIndex].track_steps[currentStepIndex]._id,
-                        progressPercentage,
-                    );
-
-                    setProgress({
-                        trackIndex: newTrackIndex,
-                        stepIndex: newStepIndex,
-                    });
-                    if (newTrackIndex === course.tracks.length) {
-                        alert('Congratulations! You have completed the course.');
-                        return;
-                    } else {
-                        setCurrentVideo(course.tracks[newTrackIndex].track_steps[newStepIndex].video);
-                    }
-                } catch (error) {
-                    console.error('Error saving progress:', error);
+                if (currentStep.lesson) {
+                    setCurrentLesson(currentStep.lesson);
+                    setQuizModalOpen(true);
                 }
+
+                let newTrackIndex = currentTrackIndex;
+                let newStepIndex = currentStepIndex + 1;
+
+                if (newStepIndex >= course.tracks[currentTrackIndex].track_steps.length) {
+                    newTrackIndex += 1;
+                    newStepIndex = 0;
+                }
+
+                const totalSteps = course.tracks.reduce((acc, track) => acc + track.track_steps.length, 0);
+                const completedSteps =
+                    course.tracks.slice(0, newTrackIndex).reduce((acc, track) => acc + track.track_steps.length, 0) +
+                    newStepIndex;
+
+                const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
+
+                if (newTrackIndex >= course.tracks.length) {
+                    try {
+                        const lastTrackIndex = course.tracks.length - 1;
+                        const lastStepIndex = course.tracks[lastTrackIndex].track_steps.length - 1;
+                        const lastStep = course.tracks[lastTrackIndex].track_steps[lastStepIndex];
+
+                        await apiService.saveProgress(
+                            authState.id,
+                            course._id,
+                            course.tracks[lastTrackIndex]._id,
+                            lastStep._id,
+                            100,
+                        );
+                        // setShowPractice(true);
+                        // alert('Congratulations! You have completed the course.');
+                        setShowCertificate(true);
+                        setCurrentVideo(null);
+                    } catch (error) {
+                        console.error('Error saving progress:', error);
+                    }
+                    return;
+                } else {
+                    // Save progress and update the current video
+                    try {
+                        await apiService.saveProgress(
+                            authState.id,
+                            course._id,
+                            course.tracks[currentTrackIndex]._id,
+                            course.tracks[currentTrackIndex].track_steps[currentStepIndex]._id,
+                            progressPercentage,
+                        );
+
+                        setProgress({
+                            trackIndex: newTrackIndex,
+                            stepIndex: newStepIndex,
+                        });
+
+                        const nextVideo = course.tracks[newTrackIndex].track_steps[newStepIndex].video;
+                        setCurrentVideo(nextVideo);
+                    } catch (error) {
+                        console.error('Error saving progress:', error);
+                    }
+                }
+            } else {
+                console.error('Invalid track or step index.');
             }
         }
     };
@@ -310,12 +381,20 @@ function Learn() {
                                         }
                                         className="mr-2"
                                     />
-                                    <span>{step.title}</span>
+                                    <span>{step.video.title}</span>
                                 </div>
                             ))}
                     </div>
                 ))}
             </div>
+            <QuizModal
+                isOpen={quizModalOpen}
+                onRequestClose={() => setQuizModalOpen(false)}
+                onComplete={completeQuiz}
+                lesson={currentLesson}
+            />
+            {/* {showPractice && <Summary />} */}
+            {showCertificate && <CertificateDownload name={authState.username} course={course.title} />}
         </div>
     );
 }

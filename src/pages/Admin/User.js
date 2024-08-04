@@ -91,7 +91,7 @@ function User() {
     };
 
     return (
-        <div className="text-gray-900 bg-gray-200">
+        <div className="text-gray-900 ">
             <div className="p-4 flex flex-col">
                 <h1 className="text-3xl">Users</h1>
                 <a className="mt-2 text-blue-500 hover:underline" href="/userBlocked">

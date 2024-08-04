@@ -44,33 +44,42 @@ function Header() {
     const [countStep, setCountStep] = useState(0);
     const [showGuideModal, setShowGuideModal] = useState(false);
 
-    const debouncedProgress = useDebounce(progress, 5000);
+    const debouncedProgress = useDebounce(progress, 1000);
     useEffect(() => {
-        const fetchCourse = async () => {
+        const fetchUser = async () => {
             try {
-                if (authState.status) {
+                if (authState.status && !slug) {
                     const userResponse = await apiService.getProfile(authState.id);
                     setAvatar(userResponse.avatar);
                     const progressResponse = await apiService.getProgressUser(authState.id);
                     if (progressResponse) {
                         setProgress(progressResponse);
                     }
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+        };
 
-                    if (slug) {
-                        const courseResponse = await apiService.showCourse(slug);
+        fetchUser();
+    }, [authState]);
+    useEffect(() => {
+        const fetchCourse = async () => {
+            try {
+                if (slug && authState.status) {
+                    const courseResponse = await apiService.showCourse(slug);
 
-                        if (courseResponse) {
-                            setCourse(courseResponse);
-                            const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
-                            if (getProgress && getProgress.progressRecord) {
-                                setPercentage(getProgress.progressRecord.progress);
-                                setCountStep(getProgress.progressRecord.trackStep.length);
-                                const totalSteps = courseResponse.tracks.reduce(
-                                    (acc, track) => acc + track.track_steps.length,
-                                    0,
-                                );
-                                setTotalSteps(totalSteps);
-                            }
+                    if (courseResponse) {
+                        setCourse(courseResponse);
+                        const getProgress = await apiService.getProgress(authState.id, courseResponse._id);
+                        if (getProgress && getProgress.progressRecord) {
+                            setPercentage(getProgress.progressRecord.progress);
+                            setCountStep(getProgress.progressRecord.trackStep.length);
+                            const totalSteps = courseResponse.tracks.reduce(
+                                (acc, track) => acc + track.track_steps.length,
+                                0,
+                            );
+                            setTotalSteps(totalSteps);
                         }
                     }
                 }
@@ -81,7 +90,7 @@ function Header() {
         if (debouncedProgress) {
             fetchCourse();
         }
-    }, [slug, authState, debouncedProgress]);
+    }, [progress, slug, course]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':

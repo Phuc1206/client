@@ -82,13 +82,13 @@ function Train() {
         const embedding = mobilenetModule.current.infer(video.current, true);
         const result = await classifier.current.predictClass(embedding);
         if (result.label === CLOSE_LABEL && result.confidences[result.label] > 0.8) {
-            setMessage('Touch detected');
+            setMessage('Close detected');
             sound.play();
         } else if (result.label === AWAY_LABEL && result.confidences[result.label] > 0.8) {
             setMessage('User is away');
             sound.play();
         } else {
-            setMessage('No touch detected');
+            setMessage('No Close detected');
         }
         await sleep(200);
         run();

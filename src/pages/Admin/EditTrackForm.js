@@ -21,6 +21,7 @@ function EditTrackForm({ tracks, onClose }) {
                 explanation: step.lesson?.explanation || '',
                 videoTitle: step.video.title,
                 videoUrl: step.video.url,
+                videoDuration: step.video.duration,
             })),
         })),
     );
@@ -45,16 +46,25 @@ function EditTrackForm({ tracks, onClose }) {
                         duration: editedTrack.duration,
                         track_steps: editedTrack.track_steps.map((step) => ({
                             _id: step._id,
-                            lesson: {
-                                question: step.question,
-                                answer: step.answer,
-                                option_a: step.option_a,
-                                option_b: step.option_b,
-                                option_c: step.option_c,
-                                option_d: step.option_d,
-                                explanation: step.explanation,
-                            },
-                            video: { title: step.videoTitle, url: step.videoUrl },
+                            lesson:
+                                step.question ||
+                                step.answer ||
+                                step.option_a ||
+                                step.option_b ||
+                                step.option_c ||
+                                step.option_d ||
+                                step.explanation
+                                    ? {
+                                          question: step.question,
+                                          answer: step.answer,
+                                          option_a: step.option_a,
+                                          option_b: step.option_b,
+                                          option_c: step.option_c,
+                                          option_d: step.option_d,
+                                          explanation: step.explanation,
+                                      }
+                                    : undefined,
+                            video: { title: step.videoTitle, url: step.videoUrl, duration: step.videoDuration },
                         })),
                     });
                 }),
@@ -275,6 +285,21 @@ function EditTrackForm({ tracks, onClose }) {
                                         value={step.videoUrl}
                                         onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
                                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    />
+                                    <label
+                                        className="block text-gray-700 text-sm font-bold mb-2 mt-2"
+                                        htmlFor={`stepVideoDuration-${trackIndex}-${stepIndex}`}
+                                    >
+                                        Video Duration
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id={`stepVideoDuration-${trackIndex}-${stepIndex}`}
+                                        name="videoDuration"
+                                        value={step.videoDuration}
+                                        onChange={(e) => handleInputChange(trackIndex, stepIndex, e)}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        readOnly
                                     />
                                 </div>
                             ))}

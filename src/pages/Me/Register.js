@@ -31,7 +31,7 @@ export default function Register() {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <img
                     className="mx-auto h-10 w-auto"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
+                    src="https://i.gyazo.com/ad27bc12ca81e862ceb35328122757ee.png"
                     alt="Your Company"
                 />
                 <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Sign up</h2>
@@ -55,6 +55,7 @@ export default function Register() {
                                 id="username"
                                 name="username"
                                 type="text"
+                                autoComplete="new-password"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.username}
@@ -79,6 +80,7 @@ export default function Register() {
                                 id="password"
                                 name="password"
                                 type="password"
+                                autoComplete="off"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.password}

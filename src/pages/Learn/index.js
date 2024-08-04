@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import * as apiService from '../../services/apiService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp, faPlayCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +15,7 @@ import { Howl } from 'howler';
 import soundURL from '../../assets/sound/alarm.mp3';
 import QuizModal from '../../components/Quiz';
 import CertificateDownload from '../../components/Certificate';
-import Summary from '../../components/Practice/Lesson';
+// import Summary from '../../components/Practice/Lesson';
 // const NOT_TOUCH_LABEL = 'not_touch';
 const CLOSE_LABEL = 'close';
 const SOUND_THRESHOLD = 0.9;
@@ -158,6 +160,7 @@ function Learn() {
             } else if (Date.now() - notTouchStartRef.current >= ALERT_DELAY && canPlaySoundRef.current) {
                 sound.play();
                 canPlaySoundRef.current = false;
+                toast.warn('Đừng không tập trung khi học nhé!');
             }
         } else if (result.label === AWAY_LABEL && result.confidences[result.label] > SOUND_THRESHOLD) {
             if (!awayStartRef.current) {
@@ -165,6 +168,7 @@ function Learn() {
             } else if (Date.now() - awayStartRef.current >= ALERT_DELAY && canPlaySoundRef.current) {
                 sound.play();
                 canPlaySoundRef.current = false;
+                toast.warn('Đừng rời khỏi màn hình khi học nhé!');
             }
         } else {
             notTouchStartRef.current = null;
@@ -197,7 +201,6 @@ function Learn() {
             clearTimeout(runLoopRef.current);
         };
     }, [slug, run]);
-    const completeQuiz = () => {};
 
     const toggleTrack = (trackIndex) => {
         setExpandedTracks((prev) => ({
@@ -244,8 +247,8 @@ function Learn() {
                 currentStepIndex < course.tracks[currentTrackIndex].track_steps.length
             ) {
                 const currentStep = course.tracks[currentTrackIndex].track_steps[currentStepIndex];
-
-                if (currentStep.lesson) {
+                console.log(currentStep.lesson);
+                if (currentStep.lesson !== '' && currentStep.lesson) {
                     setCurrentLesson(currentStep.lesson);
                     setQuizModalOpen(true);
                 }
@@ -278,7 +281,7 @@ function Learn() {
                             lastStep._id,
                             100,
                         );
-                        // setShowPractice(true);
+                        setShowPractice(true);
                         // alert('Congratulations! You have completed the course.');
                         setShowCertificate(true);
                         setCurrentVideo(null);
@@ -361,38 +364,41 @@ function Learn() {
                             <FontAwesomeIcon icon={expandedTracks[trackIndex] ? faChevronUp : faChevronDown} />
                         </div>
                         {expandedTracks[trackIndex] &&
-                            track.track_steps.map((step, stepIndex) => (
-                                <div
-                                    key={step._id}
-                                    className={`flex items-center cursor-pointer p-2 pl-4 ${
-                                        progress.trackIndex > trackIndex ||
-                                        (progress.trackIndex === trackIndex && progress.stepIndex >= stepIndex)
-                                            ? 'text-green-500'
-                                            : 'text-gray-500'
-                                    }`}
-                                    onClick={() => handleVideoChange(trackIndex, stepIndex)}
-                                >
-                                    <FontAwesomeIcon
-                                        icon={
+                            track.track_steps
+                                .sort((a, b) => a.position - b.position)
+                                .map((step, stepIndex) => (
+                                    <div
+                                        key={step._id}
+                                        className={`flex items-center cursor-pointer p-2 pl-4 ${
                                             progress.trackIndex > trackIndex ||
                                             (progress.trackIndex === trackIndex && progress.stepIndex >= stepIndex)
-                                                ? faCheckCircle
-                                                : faPlayCircle
-                                        }
-                                        className="mr-2"
-                                    />
-                                    <span>{step.video.title}</span>
-                                </div>
-                            ))}
+                                                ? 'text-green-500'
+                                                : 'text-gray-500'
+                                        }`}
+                                        onClick={() => handleVideoChange(trackIndex, stepIndex)}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={
+                                                progress.trackIndex > trackIndex ||
+                                                (progress.trackIndex === trackIndex && progress.stepIndex >= stepIndex)
+                                                    ? faCheckCircle
+                                                    : faPlayCircle
+                                            }
+                                            className="mr-2"
+                                        />
+                                        <span>{step.video.title}</span>
+                                    </div>
+                                ))}
                     </div>
                 ))}
             </div>
-            <QuizModal
-                isOpen={quizModalOpen}
-                onRequestClose={() => setQuizModalOpen(false)}
-                onComplete={completeQuiz}
-                lesson={currentLesson}
-            />
+            {quizModalOpen && (
+                <QuizModal
+                    isOpen={quizModalOpen}
+                    onRequestClose={() => setQuizModalOpen(false)}
+                    lesson={currentLesson}
+                />
+            )}
             {/* {showPractice && <Summary />} */}
             {showCertificate && <CertificateDownload name={authState.username} course={course.title} />}
         </div>

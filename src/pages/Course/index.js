@@ -106,23 +106,25 @@ function Course() {
                                     </div>
                                     {expanded[index] && (
                                         <ul className="ml-8 mt-6">
-                                            {track.track_steps.map((step, stepIndex) => (
-                                                <li
-                                                    key={step._id}
-                                                    className="text-gray-700 flex justify-between items-center"
-                                                >
-                                                    <span>
-                                                        <FontAwesomeIcon
-                                                            icon={faPlayCircle}
-                                                            className="text-red-500 mr-2"
-                                                        />
-                                                        {stepIndex + 1}. {step.video.title}
-                                                    </span>
-                                                    <span className="text-gray-500">
-                                                        {formatDuration(step.video.duration)}
-                                                    </span>
-                                                </li>
-                                            ))}
+                                            {track.track_steps
+                                                .sort((a, b) => a.position - b.position)
+                                                .map((step, stepIndex) => (
+                                                    <li
+                                                        key={step._id}
+                                                        className="text-gray-700 flex justify-between items-center mt-4"
+                                                    >
+                                                        <span>
+                                                            <FontAwesomeIcon
+                                                                icon={faPlayCircle}
+                                                                className="text-red-500 mr-2"
+                                                            />
+                                                            {stepIndex + 1}. {step.video.title}
+                                                        </span>
+                                                        <span className="text-gray-500">
+                                                            {formatDuration(step.video.duration)}
+                                                        </span>
+                                                    </li>
+                                                ))}
                                         </ul>
                                     )}
                                 </div>

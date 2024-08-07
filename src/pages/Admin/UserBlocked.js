@@ -100,7 +100,12 @@ function UserBlocked() {
                                     </select>
                                 </td>
                                 <td className="p-3 px-5">
-                                    <input type="text" value={user.course_id} className="bg-transparent" readOnly />
+                                    <input
+                                        type="text"
+                                        value={user.course_id.length}
+                                        className="bg-transparent"
+                                        readOnly
+                                    />
                                 </td>
                                 <td className="p-3 px-5 flex justify-end">
                                     <button

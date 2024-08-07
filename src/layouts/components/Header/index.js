@@ -44,7 +44,7 @@ function Header() {
     const [countStep, setCountStep] = useState(0);
     const [showGuideModal, setShowGuideModal] = useState(false);
 
-    const debouncedProgress = useDebounce(progress, 1000);
+    const debouncedCourse = useDebounce(course, 1000);
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -54,6 +54,8 @@ function Header() {
                     const progressResponse = await apiService.getProgressUser(authState.id);
                     if (progressResponse) {
                         setProgress(progressResponse);
+                    } else {
+                        console.warn('No progress response received');
                     }
                 }
             } catch (error) {
@@ -87,10 +89,10 @@ function Header() {
                 console.error('Error fetching course:', error);
             }
         };
-        if (debouncedProgress) {
+        if (debouncedCourse) {
             fetchCourse();
         }
-    }, [progress, slug, course]);
+    }, [slug, debouncedCourse]);
     const handleMenuChange = (MenuItem) => {
         switch (MenuItem.type) {
             case 'language':
@@ -201,7 +203,12 @@ function Header() {
                             className="w-12 h-12 rounded-2xl"
                         />
                     </Link>
-                    {!location.pathname.startsWith('/learning') && <h1 className="text-lg font-bold">Học Lập Trình</h1>}
+                    {!location.pathname.startsWith('/learning') && (
+                        <Link to="/">
+                            {' '}
+                            <h1 className="text-lg font-bold">Học Lập Trình</h1>{' '}
+                        </Link>
+                    )}
                     {location.pathname.startsWith('/learning') && <h1 className="text-lg font-bold">{course.title}</h1>}
                 </div>
                 {!location.pathname.startsWith('/learning') && <Search />}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { useParams } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as apiService from '../../services/apiService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -281,7 +281,7 @@ function Learn() {
                             lastStep._id,
                             100,
                         );
-                        setShowPractice(true);
+                        // setShowPractice(true);
                         // alert('Congratulations! You have completed the course.');
                         setShowCertificate(true);
                         setCurrentVideo(null);
@@ -295,8 +295,8 @@ function Learn() {
                         await apiService.saveProgress(
                             authState.id,
                             course._id,
-                            course.tracks[currentTrackIndex]._id,
-                            course.tracks[currentTrackIndex].track_steps[currentStepIndex]._id,
+                            course.tracks[newTrackIndex]._id,
+                            course.tracks[newTrackIndex].track_steps[newStepIndex]._id,
                             progressPercentage,
                         );
 
